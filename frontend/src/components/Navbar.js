@@ -46,6 +46,20 @@ const Navbar = () => {
           onClick={() => (user ? navigate('/dashboard') : navigate('/'))}
         >
           Blood Donation App
+          {user && (
+            <>
+              <Chip
+                icon={user.userType === 'medicalUser' ? <LocalHospitalIcon /> : <BloodtypeIcon />}
+                label={user.userType === 'medicalUser' ? 'Medical Institution' : 'Donor'}
+                color={user.userType === 'medicalUser' ? 'secondary' : 'error'}
+                size="small"
+                sx={{ ml: 2, fontWeight: 600 }}
+              />
+              <span style={{ marginLeft: 8, fontWeight: 400, fontSize: 22, color: '#FFD600' }}>
+                | Welcome! {user.name}
+              </span>
+            </>
+          )}
         </Typography>
         {user ? (
           <>
@@ -63,14 +77,6 @@ const Navbar = () => {
             <Button color="inherit" onClick={() => navigate('/requests')}>
               Requests
             </Button>
-            <Box sx={{ display: 'flex', alignItems: 'center', mr: 2 }}>
-              <Chip
-                icon={user.userType === 'medicalUser' ? <LocalHospitalIcon /> : <BloodtypeIcon />}
-                label={user.userType === 'medicalUser' ? 'Medical Institution' : 'Donor'}
-                color={user.userType === 'medicalUser' ? 'secondary' : 'error'}
-                size="small"
-              />
-            </Box>
             <IconButton
               size="large"
               aria-label="account of current user"

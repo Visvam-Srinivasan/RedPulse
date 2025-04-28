@@ -55,7 +55,7 @@ exports.register = async (req, res) => {
       email,
       password: hashedPassword,
       userType,
-      bloodType: userType === 'commonUser' ? bloodType : undefined,
+      bloodType: userType === 'commonUser' ? bloodType : null,
       phoneNumber
     };
 
