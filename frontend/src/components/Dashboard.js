@@ -18,6 +18,7 @@ import LocalHospitalIcon from '@mui/icons-material/LocalHospital';
 import BloodtypeIcon from '@mui/icons-material/Bloodtype';
 import VolunteerActivismIcon from '@mui/icons-material/VolunteerActivism';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
+import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import PersonOutlineIcon from '@mui/icons-material/PersonOutline';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
@@ -61,11 +62,11 @@ const Dashboard = () => {
 
   const renderSkeleton = () => (
     <Box sx={{ width: '100%' }}>
-      <Skeleton animation="wave" height={40} sx={{ mb: 2 }} />
-      <Skeleton animation="wave" height={30} sx={{ mb: 1 }} />
-      <Skeleton animation="wave" height={30} sx={{ mb: 1 }} />
-      <Skeleton animation="wave" height={30} sx={{ mb: 2 }} />
-      <Skeleton animation="wave" height={40} width="60%" />
+      <Skeleton animation="wave" height={40} sx={{ mb: 2 }} animationDuration={3}/>
+      <Skeleton animation="wave" height={30} sx={{ mb: 1 }} animationDuration={3}/>
+      <Skeleton animation="wave" height={30} sx={{ mb: 1 }} animationDuration={3}/>
+      <Skeleton animation="wave" height={30} sx={{ mb: 2 }} animationDuration={3}/>
+      <Skeleton animation="wave" height={40} width="60%" animationDuration={3}/>
     </Box>
   );
 
@@ -149,50 +150,80 @@ const Dashboard = () => {
                         User Information
                       </Typography>
                       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
-                        <Typography 
-                          color="textSecondary" 
-                          sx={{ 
-                            display: 'flex',
-                            alignItems: 'center',
-                            '&:before': {
-                              content: '"•"',
-                              color: 'primary.main',
-                              mr: 1
-                            }
-                          }}
-                        >
-                          Email: {user?.email}
-                        </Typography>
-                        <Typography 
-                          color="textSecondary"
-                          sx={{ 
-                            display: 'flex',
-                            alignItems: 'center',
-                            '&:before': {
-                              content: '"•"',
-                              color: 'primary.main',
-                              mr: 1
-                            }
-                          }}
-                        >
-                          User Type: {user?.userType === 'medicalUser' ? 'Medical Institution' : 'Donor'}
-                        </Typography>
-                        {user?.bloodType && (
-                          <Typography 
-                            color="textSecondary"
-                            sx={{ 
-                              display: 'flex',
-                              alignItems: 'center',
-                              '&:before': {
-                                content: '"•"',
-                                color: 'primary.main',
-                                mr: 1
-                              }
-                            }}
-                          >
-                            Blood Type: {user?.bloodType}
-                          </Typography>
-                        )}
+                        <Box sx={{ 
+                          display: 'flex', 
+                          alignItems: 'center',
+                          gap: 2,
+                          position: 'relative',
+                          minHeight: '180px',
+                          width: '100%',
+                          overflow: 'hidden'
+                        }}>
+                          <AccountCircleIcon sx={{ 
+                            fontSize: 100, 
+                            color: 'primary.main',
+                            opacity: 0.2,
+                            position: 'absolute',
+                            left: 0,
+                            top: '50%',
+                            transform: 'translateY(-50%)'
+                          }} />
+                          <Box sx={{ 
+                            ml: 12, 
+                            display: 'flex', 
+                            flexDirection: 'column', 
+                            gap: 2,
+                            width: '100%',
+                            pr: 2,
+                            position: 'relative',
+                            left: '20px'
+                          }}>
+                            <Typography 
+                              color="textSecondary" 
+                              sx={{ 
+                                display: 'flex',
+                                alignItems: 'center',
+                                '&:before': {
+                                  content: '"•"',
+                                  color: 'primary.main',
+                                  mr: 1
+                                }
+                              }}
+                            >
+                              Email: {user?.email}
+                            </Typography>
+                            <Typography 
+                              color="textSecondary"
+                              sx={{ 
+                                display: 'flex',
+                                alignItems: 'center',
+                                '&:before': {
+                                  content: '"•"',
+                                  color: 'primary.main',
+                                  mr: 1
+                                }
+                              }}
+                            >
+                              User Type: {user?.userType === 'medicalUser' ? 'Medical Institution' : 'Donor'}
+                            </Typography>
+                            {user?.bloodType && (
+                              <Typography 
+                                color="textSecondary"
+                                sx={{ 
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  '&:before': {
+                                    content: '"•"',
+                                    color: 'primary.main',
+                                    mr: 1
+                                  }
+                                }}
+                              >
+                                Blood Type: {user?.bloodType}
+                              </Typography>
+                            )}
+                          </Box>
+                        </Box>
                         <Box sx={{ mt: 2 }}>
                           <Chip
                             icon={user?.userType === 'medicalUser' ? <LocalHospitalIcon /> : <BloodtypeIcon />}
