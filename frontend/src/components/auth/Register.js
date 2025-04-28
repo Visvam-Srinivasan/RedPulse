@@ -341,29 +341,31 @@ const Register = () => {
                 />
               </Grid>
               <Grid item xs={12} sm={6}>
-                <TextField
-                  fullWidth
-                  select
-                  label="Blood Type"
-                  name="bloodType"
-                  value={formData.bloodType}
-                  onChange={handleChange}
-                  margin="normal"
-                  required
-                  SelectProps={{
-                    native: true
-                  }}
-                >
-                  <option value="">Select Blood Type</option>
-                  <option value="A+">A+</option>
-                  <option value="A-">A-</option>
-                  <option value="B+">B+</option>
-                  <option value="B-">B-</option>
-                  <option value="AB+">AB+</option>
-                  <option value="AB-">AB-</option>
-                  <option value="O+">O+</option>
-                  <option value="O-">O-</option>
-                </TextField>
+                {formData.userType === 'commonUser' && (
+                  <TextField
+                    fullWidth
+                    select
+                    label="Blood Type"
+                    name="bloodType"
+                    value={formData.bloodType}
+                    onChange={handleChange}
+                    margin="normal"
+                    required
+                    SelectProps={{
+                      native: true
+                    }}
+                  >
+                    <option value="">Select Blood Type</option>
+                    <option value="A+">A+</option>
+                    <option value="A-">A-</option>
+                    <option value="B+">B+</option>
+                    <option value="B-">B-</option>
+                    <option value="AB+">AB+</option>
+                    <option value="AB-">AB-</option>
+                    <option value="O+">O+</option>
+                    <option value="O-">O-</option>
+                  </TextField>
+                )}
               </Grid>
               <Grid item xs={12} sm={6}>
                 <FormControl fullWidth margin="normal" sx={{ mb: 2, position: 'relative', zIndex: 2 }}>

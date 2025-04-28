@@ -12,7 +12,7 @@ const RequestList = () => {
       const token = localStorage.getItem('token');
       const endpoint = user.userType === 'commonUser'
         ? 'http://localhost:5000/api/requests/nearby'
-        : 'http://localhost:5000/api/requests';
+        : 'http://localhost:5000/api/requests/all';
       
       const res = await axios.get(endpoint, {
         headers: {
@@ -32,15 +32,32 @@ const RequestList = () => {
   const handleAccept = async (requestId) => {
     try {
       const token = localStorage.getItem('token');
-      await axios.post(
-        `http://localhost:5000/api/requests/${requestId}/accept`,
-        {},
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+      if (user.userType === 'medicalUser') {
+        const units = parseInt(unitsToDonate[requestId], 10);
+        if (!units || units < 1) {
+          setError('Please enter a valid number of units to donate.');
+          return;
         }
-      );
+        await axios.post(
+          `http://localhost:5000/api/requests/${requestId}/accept`,
+          { unitsDonated: units },
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+      } else {
+        await axios.post(
+          `http://localhost:5000/api/requests/${requestId}/accept`,
+          {},
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+      }
       fetchRequests();
     } catch (err) {
       setError(err.response?.data?.message || 'An error occurred');
@@ -82,6 +99,9 @@ const RequestList = () => {
 
   const urgencyOrder = { high: 3, medium: 2, low: 1 };
   const urgencyColor = { high: '#d32f2f', medium: '#ff9800', low: '#fbc02d' };
+
+  // For medical users, track units to donate per request
+  const [unitsToDonate, setUnitsToDonate] = useState({});
 
   return (
     <Container maxWidth="lg">
@@ -184,6 +204,28 @@ const RequestList = () => {
                         >
                           Accept
                         </Button>
+                      )}
+                      {user.userType === 'medicalUser' && request.status === 'pending' && (
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                          <input
+                            type="number"
+                            min={1}
+                            max={request.unitsLeft}
+                            value={unitsToDonate[request._id] || ''}
+                            onChange={e => setUnitsToDonate({ ...unitsToDonate, [request._id]: e.target.value })}
+                            style={{ width: 60, padding: 4, borderRadius: 4, border: '1px solid #ccc' }}
+                            placeholder="Units"
+                          />
+                          <Button
+                            size="large"
+                            variant="contained"
+                            color="primary"
+                            sx={{ fontWeight: 700, fontSize: 18, px: 2, py: 1, borderRadius: 3 }}
+                            onClick={() => handleAccept(request._id)}
+                          >
+                            Donate
+                          </Button>
+                        </Box>
                       )}
                       {user.userType === 'medicalUser' &&
                         request.status === 'accepted' &&

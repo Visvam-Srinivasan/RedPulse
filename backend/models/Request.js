@@ -75,7 +75,8 @@ const requestSchema = new mongoose.Schema({
   donations: [
     {
       donor: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-      donatedAt: { type: Date, default: Date.now }
+      donatedAt: { type: Date, default: Date.now },
+      unitsDonated: { type: Number, default: 1, min: 1 }
     }
   ]
 }, {

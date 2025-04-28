@@ -134,14 +134,28 @@ exports.acceptRequest = async (req, res) => {
       return res.status(403).json({ message: 'You cannot accept your own request' });
     }
 
-    // Prevent the same donor from donating twice
-    if (request.donations.some(d => d.donor.toString() === req.user._id.toString())) {
-      return res.status(400).json({ message: 'You have already donated for this request' });
+    // Check if user is a medical institution
+    if (req.user.userType === 'medicalUser') {
+      // Medical institution can donate multiple units at once
+      let unitsToDonate = parseInt(req.body.unitsDonated, 10);
+      if (isNaN(unitsToDonate) || unitsToDonate < 1) {
+        return res.status(400).json({ message: 'Invalid units to donate' });
+      }
+      if (unitsToDonate > request.unitsLeft) {
+        return res.status(400).json({ message: 'Cannot donate more units than needed' });
+      }
+      // Add donation
+      request.donations.push({ donor: req.user._id, unitsDonated: unitsToDonate });
+      request.unitsLeft -= unitsToDonate;
+    } else {
+      // Prevent the same donor from donating twice
+      if (request.donations.some(d => d.donor.toString() === req.user._id.toString())) {
+        return res.status(400).json({ message: 'You have already donated for this request' });
+      }
+      // Add donor and decrement units left by 1
+      request.donations.push({ donor: req.user._id });
+      request.unitsLeft -= 1;
     }
-
-    // Add donor and decrement units left
-    request.donations.push({ donor: req.user._id });
-    request.unitsLeft -= 1;
 
     // Update status based on units left
     if (request.unitsLeft === 0) {
@@ -285,5 +299,32 @@ exports.getMyDonations = async (req, res) => {
     res.json(donations);
   } catch (error) {
     res.status(500).json({ message: 'Error fetching your donations', error: error.message });
+  }
+};
+
+exports.getAllRequests = async (req, res) => {
+  try {
+    const { maxDistance = 10 } = req.query;
+    const user = await User.findById(req.user._id);
+
+    const requests = await Request.find({
+      status: { $in: ['pending', 'accepted'] },
+      unitsLeft: { $gt: 0 },
+      location: {
+        $near: {
+          $geometry: {
+            type: 'Point',
+            coordinates: user.location.coordinates
+          },
+          $maxDistance: maxDistance * 1000 // Convert km to meters
+        }
+      }
+    })
+    .populate('requester', 'name email phoneNumber');
+
+    res.json(requests);
+  } catch (error) {
+    console.error('Error in getAllRequests:', error);
+    res.status(500).json({ message: 'Error fetching all requests', error: error.message });
   }
 }; 

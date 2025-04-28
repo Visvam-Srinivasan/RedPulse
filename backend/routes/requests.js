@@ -7,7 +7,8 @@ const {
   fulfillRequest,
   getNearbyRequests,
   getMyRequests,
-  getMyDonations
+  getMyDonations,
+  getAllRequests
 } = require('../controllers/requestController');
 
 // Protected routes
@@ -30,5 +31,8 @@ router.get('/my-requests', getMyRequests);
 
 // Get all donations (requests accepted) by the logged-in user
 router.get('/my-donations', getMyDonations);
+
+// Get all requests (for medical users, not filtered by blood group)
+router.get('/all', checkUserType('medicalUser'), getAllRequests);
 
 module.exports = router; 

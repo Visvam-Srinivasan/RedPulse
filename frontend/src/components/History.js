@@ -79,7 +79,7 @@ const History = () => {
             ) : myDonations.length === 0 ? (
               <Typography color="text.secondary">No donations yet.</Typography>
             ) : (
-              myDonations.map((don, idx) => (
+              Array.from(new Map(myDonations.map(don => [don._id, don])).values()).map((don, idx) => (
                 <Box key={don._id || idx} sx={{ mb: 2, p: 1, border: '1px solid #eee', borderRadius: 2 }}>
                   <Box sx={{ display: 'flex', alignItems: 'center', mb: 0.5 }}>
                     <VolunteerActivismIcon color="primary" sx={{ mr: 1 }} />
