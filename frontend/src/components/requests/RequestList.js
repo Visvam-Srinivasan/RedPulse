@@ -213,14 +213,14 @@ const RequestList = () => {
                             max={request.unitsLeft}
                             value={unitsToDonate[request._id] || ''}
                             onChange={e => setUnitsToDonate({ ...unitsToDonate, [request._id]: e.target.value })}
-                            style={{ width: 60, padding: 4, borderRadius: 4, border: '1px solid #ccc' }}
+                            style={{ width: 120, height: 48, padding: '0 12px', borderRadius: 8, border: '1px solid #ccc', fontSize: 18 }}
                             placeholder="Units"
                           />
                           <Button
                             size="large"
                             variant="contained"
                             color="primary"
-                            sx={{ fontWeight: 700, fontSize: 18, px: 2, py: 1, borderRadius: 3 }}
+                            sx={{ fontWeight: 700, fontSize: 18, px: 2, py: 1, borderRadius: 3, height: 48 }}
                             onClick={() => handleAccept(request._id)}
                           >
                             Donate

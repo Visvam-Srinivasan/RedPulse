@@ -17,8 +17,8 @@ router.use(auth);
 // Create request (for medical users)
 router.post('/', createRequest);
 
-// Accept request (for common users)
-router.post('/:id/accept', checkUserType('commonUser'), acceptRequest);
+// Accept request (for both common users and medical users)
+router.post('/:id/accept', acceptRequest);
 
 // Fulfill request (for medical users)
 router.post('/:id/fulfill', checkUserType('medicalUser'), fulfillRequest);
