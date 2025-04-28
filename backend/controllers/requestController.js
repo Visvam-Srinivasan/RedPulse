@@ -3,11 +3,36 @@ const User = require('../models/User');
 
 exports.createRequest = async (req, res) => {
   try {
-    const { bloodType, units, maxDistance, urgency, notes, hospitalName } = req.body;
+    console.log('Received request data:', req.body);
+    
+    const { bloodType, totalUnits, maxDistance, urgency, notes, hospitalName, requesterType } = req.body;
     const location = req.body.location;
 
-    // Determine requester type
-    const requesterType = req.user.userType;
+    // Validate required fields
+    if (!bloodType || !totalUnits || !location || !location.coordinates) {
+      return res.status(400).json({ 
+        message: 'Missing required fields',
+        details: {
+          bloodType: !bloodType,
+          totalUnits: !totalUnits,
+          location: !location || !location.coordinates
+        }
+      });
+    }
+
+    // Validate location coordinates
+    if (!Array.isArray(location.coordinates) || location.coordinates.length !== 2) {
+      return res.status(400).json({ message: 'Invalid location coordinates format' });
+    }
+
+    // Validate numbers
+    if (isNaN(totalUnits) || totalUnits < 1) {
+      return res.status(400).json({ message: 'Invalid total units value' });
+    }
+
+    if (isNaN(maxDistance) || maxDistance < 1) {
+      return res.status(400).json({ message: 'Invalid max distance value' });
+    }
 
     // If medical user, require hospitalName
     if (requesterType === 'medicalUser' && !hospitalName) {
@@ -17,18 +42,23 @@ exports.createRequest = async (req, res) => {
     const request = new Request({
       requester: req.user._id,
       bloodType,
-      totalUnits: units,
-      unitsLeft: units, // Set initial unitsLeft equal to total units
+      totalUnits: parseInt(totalUnits, 10),
+      unitsLeft: parseInt(totalUnits, 10),
       location: {
         type: 'Point',
-        coordinates: [location.longitude, location.latitude]
+        coordinates: [
+          parseFloat(location.coordinates[0]),
+          parseFloat(location.coordinates[1])
+        ]
       },
-      maxDistance,
+      maxDistance: parseInt(maxDistance, 10),
       urgency,
       notes,
       hospitalName: requesterType === 'medicalUser' ? hospitalName : undefined,
       requesterType
     });
+
+    console.log('Creating request with data:', request);
 
     await request.save();
 
@@ -51,7 +81,7 @@ exports.createRequest = async (req, res) => {
         $near: {
           $geometry: {
             type: 'Point',
-            coordinates: [location.longitude, location.latitude]
+            coordinates: [location.coordinates[0], location.coordinates[1]]
           },
           $maxDistance: maxDistance * 1000 // Convert km to meters
         }
@@ -69,7 +99,11 @@ exports.createRequest = async (req, res) => {
     });
   } catch (error) {
     console.error('Error in createRequest:', error);
-    res.status(500).json({ message: 'Error creating request', error: error.message });
+    res.status(500).json({ 
+      message: 'Error creating request', 
+      error: error.message,
+      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+    });
   }
 };
 
@@ -189,34 +223,37 @@ exports.getMyRequests = async (req, res) => {
     
     // Get requests with lean() for better performance
     const requests = await Request.find({ requester: req.user._id })
-      .select('-donations') // Exclude donations array for better performance
       .lean()
       .sort({ createdAt: -1 });
     
-    // Get all unique donor IDs
+    // Get all unique donor IDs from all requests
     const donorIds = [...new Set(requests.flatMap(req => 
-      req.donations.map(d => d.donor)
+      (req.donations || []).map(d => d.donor)
     ).filter(id => id))];
     
-    // Fetch all donors in one query
-    const donors = await User.find(
-      { _id: { $in: donorIds } },
-      'name userType'
-    ).lean();
-    
-    // Create a map of donor IDs to donor info
-    const donorMap = donors.reduce((acc, donor) => {
-      acc[donor._id.toString()] = {
-        name: donor.name,
-        userType: donor.userType
-      };
-      return acc;
-    }, {});
+    // Only fetch donors if there are any donations
+    let donorMap = {};
+    if (donorIds.length > 0) {
+      // Fetch all donors in one query
+      const donors = await User.find(
+        { _id: { $in: donorIds } },
+        'name userType'
+      ).lean();
+      
+      // Create a map of donor IDs to donor info
+      donorMap = donors.reduce((acc, donor) => {
+        acc[donor._id.toString()] = {
+          name: donor.name,
+          userType: donor.userType
+        };
+        return acc;
+      }, {});
+    }
     
     // Attach donor info to each donation
     const populatedRequests = requests.map(request => ({
       ...request,
-      donations: request.donations.map(donation => ({
+      donations: (request.donations || []).map(donation => ({
         ...donation,
         donor: donorMap[donation.donor.toString()] || null
       }))

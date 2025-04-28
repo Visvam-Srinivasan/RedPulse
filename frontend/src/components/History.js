@@ -79,12 +79,14 @@ const History = () => {
             ) : myRequests.length === 0 ? (
               <Typography color="text.secondary">No requests yet.</Typography>
             ) : (
-              myRequests.map((req, idx) => (
+              myRequests
+                .filter(req => req.unitsLeft === 0)
+                .map((req, idx) => (
                 <Box key={req._id || idx} sx={{ mb: 2, p: 1, border: '1px solid #eee', borderRadius: 2 }}>
                   <Box sx={{ display: 'flex', alignItems: 'center', mb: 0.5 }}>
                     <AddCircleOutlineIcon color="error" sx={{ mr: 1 }} />
                     <Typography fontWeight={600}>
-                      Request for: {req.bloodType} | Units: {req.units}
+                      Request for: {req.bloodType} | Total Units: {req.totalUnits}
                     </Typography>
                   </Box>
                   <Typography variant="body2">Status: {req.status}</Typography>
@@ -92,13 +94,6 @@ const History = () => {
                     <Box sx={{ mt: 1 }}>
                       <Typography variant="body2" fontWeight={500}>Contributors:</Typography>
                       {req.donations.map((donation, dIdx) => {
-                        console.log('Donation data:', {
-                          donationId: donation._id,
-                          donor: donation.donor,
-                          donatedAt: donation.donatedAt
-                        });
-                        
-                        // The donor is now an object with name and userType
                         const donorName = donation.donor?.name || 'Unknown Donor';
                         const donorType = donation.donor?.userType || 'Donor';
                         

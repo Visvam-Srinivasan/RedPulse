@@ -156,14 +156,14 @@ const RequestForm = () => {
       const token = localStorage.getItem('token');
       const requestData = {
         bloodType: formData.bloodType,
-        totalUnits: formData.units,
-        unitsLeft: formData.units, // Set initial unitsLeft equal to total units
-        maxDistance: formData.maxDistance,
+        totalUnits: parseInt(formData.units, 10),
+        unitsLeft: parseInt(formData.units, 10),
+        maxDistance: parseInt(formData.maxDistance, 10),
         urgency: formData.urgency,
         notes: formData.notes,
         location: {
           type: 'Point',
-          coordinates: [locationToSend.longitude, locationToSend.latitude]
+          coordinates: [parseFloat(locationToSend.longitude), parseFloat(locationToSend.latitude)]
         },
         hospitalName: formData.hospitalName,
         requesterType: user.userType

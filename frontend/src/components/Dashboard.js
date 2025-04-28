@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Container, Typography, Box, Button, Grid, Card, CardContent, Chip } from '@mui/material';
+import { Container, Typography, Box, Button, Grid, Card, CardContent, Chip, Alert } from '@mui/material';
 import LocalHospitalIcon from '@mui/icons-material/LocalHospital';
 import BloodtypeIcon from '@mui/icons-material/Bloodtype';
 import VolunteerActivismIcon from '@mui/icons-material/VolunteerActivism';
@@ -14,19 +14,27 @@ const Dashboard = () => {
   const [myRequests, setMyRequests] = useState([]);
   const [myDonations, setMyDonations] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
   useEffect(() => {
     const fetchHistory = async () => {
       try {
         const token = localStorage.getItem('token');
         const [reqRes, donRes] = await Promise.all([
-          axios.get('http://localhost:5000/api/requests/my-requests', { headers: { Authorization: `Bearer ${token}` } }),
-          axios.get('http://localhost:5000/api/requests/my-donations', { headers: { Authorization: `Bearer ${token}` } })
+          axios.get('http://localhost:5000/api/requests/my-requests', { 
+            headers: { Authorization: `Bearer ${token}` } 
+          }),
+          axios.get('http://localhost:5000/api/requests/my-donations', { 
+            headers: { Authorization: `Bearer ${token}` } 
+          })
         ]);
+        
+        console.log('Fetched requests:', reqRes.data);
         setMyRequests(reqRes.data);
         setMyDonations(donRes.data);
       } catch (err) {
-        // Optionally handle error
+        console.error('Error fetching data:', err);
+        setError(err.response?.data?.message || 'An error occurred while fetching data');
       } finally {
         setLoading(false);
       }
@@ -34,12 +42,26 @@ const Dashboard = () => {
     fetchHistory();
   }, []);
 
+  // Debug: Log the filtered pending requests
+  useEffect(() => {
+    if (myRequests.length > 0) {
+      const pendingRequests = myRequests.filter(r => r.status === 'pending');
+      console.log('Pending requests:', pendingRequests);
+      console.log('All requests:', myRequests);
+    }
+  }, [myRequests]);
+
   return (
     <Container maxWidth="lg">
       <Box sx={{ mt: 8, mb: 4 }}>
         <Typography variant="h4" component="h1" gutterBottom>
           Welcome, {user?.name}!
         </Typography>
+        {error && (
+          <Alert severity="error" sx={{ mb: 2 }}>
+            {error}
+          </Alert>
+        )}
         <Grid container spacing={3}>
           <Grid item xs={12} md={6}>
             <Card>
@@ -109,12 +131,14 @@ const Dashboard = () => {
                 ) : myRequests.filter(r => r.status === 'pending').length === 0 ? (
                   <Typography color="text.secondary">No pending requests.</Typography>
                 ) : (
-                  myRequests.filter(r => r.status === 'pending').map((req, idx) => (
+                  myRequests
+                    .filter(r => r.status === 'pending')
+                    .map((req, idx) => (
                     <Box key={req._id || idx} sx={{ mb: 2, p: 1, border: '1px solid #eee', borderRadius: 2 }}>
                       <Box sx={{ display: 'flex', alignItems: 'center', mb: 0.5 }}>
                         <AddCircleOutlineIcon color="error" sx={{ mr: 1 }} />
                         <Typography fontWeight={600}>
-                          Request for: {req.bloodType} | Units: {req.units}
+                          Request for: {req.bloodType} | Total Units: {req.totalUnits} | Units Left: {req.unitsLeft}
                         </Typography>
                       </Box>
                       <Typography variant="body2">Status: {req.status}</Typography>

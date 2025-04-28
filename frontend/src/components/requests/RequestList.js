@@ -151,9 +151,6 @@ const RequestList = () => {
                       <Typography variant="body1" gutterBottom>
                         Requested by: {request.requester?.name || 'Unknown'}
                       </Typography>
-                      <Typography variant="body1" gutterBottom>
-                        Units Left: {request.units} / {request.totalUnits || request.units}
-                      </Typography>
                       <Box sx={{ mt: 2 }}>
                         <Chip
                           label={request.status}
