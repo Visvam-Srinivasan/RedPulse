@@ -73,6 +73,19 @@ const theme = createTheme({
         },
       },
     },
+    background: {
+      default: '#fff5f5',
+      paper: '#ffffff',
+    },
+  },
+  components: {
+    MuiCssBaseline: {
+      styleOverrides: {
+        body: {
+          backgroundColor: '#fff5f5',
+        },
+      },
+    },
   },
 });
 
@@ -83,6 +96,7 @@ function App() {
       <CssBaseline />
       <AuthProvider>
         <Router>
+<<<<<<< Updated upstream
           <Box
             sx={{
               minHeight: '100vh',
@@ -102,6 +116,19 @@ function App() {
                 mx: 'auto',
               }}
             >
+=======
+          <Box sx={{ 
+            minHeight: '100vh',
+            backgroundColor: 'background.default',
+            backgroundImage: 'linear-gradient(to bottom, #fff5f5, #ffe5e5)',
+          }}>
+            <Navbar />
+            <Box sx={{ 
+              pt: 2,
+              pb: 4,
+              minHeight: 'calc(100vh - 64px)',
+            }}>
+>>>>>>> Stashed changes
               <Routes>
                 <Route path="/login" element={<Login />} />
                 <Route path="/register" element={<Register />} />

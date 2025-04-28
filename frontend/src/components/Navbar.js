@@ -36,7 +36,10 @@ const Navbar = () => {
   };
 
   return (
+<<<<<<< Updated upstream
 
+=======
+>>>>>>> Stashed changes
     <AppBar 
       position="static" 
       sx={{ 
