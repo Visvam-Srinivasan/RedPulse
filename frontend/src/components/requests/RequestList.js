@@ -100,7 +100,7 @@ const RequestList = () => {
           {(() => {
             const filteredRequests = requests
               .filter(request => request.requester?._id !== user.id)
-              .filter(request => request.units > 0)
+              .filter(request => request.unitsLeft > 0)
               .filter(request => !request.donations?.some(d => d.donor === user.id));
             if (filteredRequests.length === 0) {
               return (
@@ -133,7 +133,7 @@ const RequestList = () => {
                         Blood Type: {request.bloodType}
                       </Typography>
                       <Typography variant="body1" gutterBottom>
-                        Units Required: {request.units}
+                        Units Required: {request.totalUnits} (Left: {request.unitsLeft})
                       </Typography>
                       <Typography variant="body1" gutterBottom>
                         Distance: {request.maxDistance} km

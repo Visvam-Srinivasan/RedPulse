@@ -17,8 +17,8 @@ exports.createRequest = async (req, res) => {
     const request = new Request({
       requester: req.user._id,
       bloodType,
-      units,
       totalUnits: units,
+      unitsLeft: units, // Set initial unitsLeft equal to total units
       location: {
         type: 'Point',
         coordinates: [location.longitude, location.latitude]
@@ -68,6 +68,7 @@ exports.createRequest = async (req, res) => {
       requesterName: request.requester.name
     });
   } catch (error) {
+    console.error('Error in createRequest:', error);
     res.status(500).json({ message: 'Error creating request', error: error.message });
   }
 };
@@ -158,7 +159,7 @@ exports.getNearbyRequests = async (req, res) => {
     const user = await User.findById(req.user._id);
 
     const requests = await Request.find({
-      status: { $in: ['pending', 'accepted'] }, // Show both pending and accepted requests
+      status: { $in: ['pending', 'accepted'] },
       unitsLeft: { $gt: 0 }, // Only show requests with units left
       bloodType: user.bloodType,
       location: {
@@ -170,10 +171,13 @@ exports.getNearbyRequests = async (req, res) => {
           $maxDistance: maxDistance * 1000 // Convert km to meters
         }
       }
-    }).populate('requester', 'name email phoneNumber');
+    })
+    .select('-donations') // Exclude donations array for better performance
+    .populate('requester', 'name email phoneNumber');
 
     res.json(requests);
   } catch (error) {
+    console.error('Error in getNearbyRequests:', error);
     res.status(500).json({ message: 'Error fetching requests', error: error.message });
   }
 };
@@ -185,6 +189,7 @@ exports.getMyRequests = async (req, res) => {
     
     // Get requests with lean() for better performance
     const requests = await Request.find({ requester: req.user._id })
+      .select('-donations') // Exclude donations array for better performance
       .lean()
       .sort({ createdAt: -1 });
     
@@ -219,6 +224,8 @@ exports.getMyRequests = async (req, res) => {
     
     console.log('Sample populated request:', {
       requestId: populatedRequests[0]?._id,
+      totalUnits: populatedRequests[0]?.totalUnits,
+      unitsLeft: populatedRequests[0]?.unitsLeft,
       donations: populatedRequests[0]?.donations?.map(d => ({
         donorId: d.donor,
         donorInfo: donorMap[d.donor]

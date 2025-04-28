@@ -154,18 +154,36 @@ const RequestForm = () => {
     }
     try {
       const token = localStorage.getItem('token');
+      const requestData = {
+        bloodType: formData.bloodType,
+        totalUnits: formData.units,
+        unitsLeft: formData.units, // Set initial unitsLeft equal to total units
+        maxDistance: formData.maxDistance,
+        urgency: formData.urgency,
+        notes: formData.notes,
+        location: {
+          type: 'Point',
+          coordinates: [locationToSend.longitude, locationToSend.latitude]
+        },
+        hospitalName: formData.hospitalName,
+        requesterType: user.userType
+      };
+      
+      console.log('Sending request data:', requestData);
+      
       await axios.post(
         'http://localhost:5000/api/requests',
-        { ...formData, location: locationToSend, hospitalName: formData.hospitalName },
+        requestData,
         {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         }
       );
-      navigate('/requests');
+      navigate('/dashboard');
     } catch (err) {
-      setError(err.response?.data?.message || 'An error occurred');
+      console.error('Error creating request:', err);
+      setError(err.response?.data?.message || 'An error occurred while creating the request');
     }
   };
 

@@ -32,7 +32,7 @@ const RequestCard = ({ request, onAccept, onCancel }) => {
           </p>
         </div>
         <div className="flex space-x-2">
-          {request.status === 'pending' && (
+          {request.status === 'pending' && request.unitsLeft > 0 && (
             <button
               onClick={handleAccept}
               disabled={isLoading}
