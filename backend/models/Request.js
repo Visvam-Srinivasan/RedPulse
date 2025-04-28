@@ -11,22 +11,21 @@ const requestSchema = new mongoose.Schema({
     enum: ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'],
     required: true
   },
-  units: {
+  totalUnits: {
+    type: Number,
+    required: true,
+    min: 1
+  },
+  unitsLeft: {
     type: Number,
     required: true,
     min: 0,
     validate: {
       validator: function(v) {
-        // Allow 0 only if status is fulfilled
-        return v > 0 || this.status === 'fulfilled';
+        return v <= this.totalUnits;
       },
-      message: 'Units must be greater than 0 unless request is fulfilled'
+      message: 'Units left cannot be greater than total units'
     }
-  },
-  totalUnits: {
-    type: Number,
-    required: true,
-    min: 1
   },
   location: {
     type: {

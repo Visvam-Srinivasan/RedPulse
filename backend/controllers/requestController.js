@@ -83,39 +83,38 @@ exports.acceptRequest = async (req, res) => {
     if (!request) {
       return res.status(404).json({ message: 'Request not found' });
     }
-    if (request.status === 'fulfilled' || request.units <= 0) {
-      return res.status(400).json({ message: 'Request is already fulfilled' });
+
+    // Check if request is already fulfilled or cancelled
+    if (request.status === 'fulfilled' || request.status === 'cancelled') {
+      return res.status(400).json({ message: 'Request is already fulfilled or cancelled' });
     }
+
+    // Check if there are units left to donate
+    if (request.unitsLeft <= 0) {
+      return res.status(400).json({ message: 'No units left to donate' });
+    }
+
     // Prevent requester from accepting their own request
     if (request.requester.toString() === req.user._id.toString()) {
       return res.status(403).json({ message: 'You cannot accept your own request' });
     }
+
     // Prevent the same donor from donating twice
     if (request.donations.some(d => d.donor.toString() === req.user._id.toString())) {
       return res.status(400).json({ message: 'You have already donated for this request' });
     }
 
-    // Log before update
-    console.log('Before accept:', { units: request.units, donations: request.donations.length });
-
-    // Add donor and decrement units
+    // Add donor and decrement units left
     request.donations.push({ donor: req.user._id });
-    request.units -= 1;
+    request.unitsLeft -= 1;
 
-    // Update status based on units
-    if (request.units <= 0) {
+    // Update status based on units left
+    if (request.unitsLeft === 0) {
       request.status = 'fulfilled';
       request.fulfilledAt = new Date();
     } else {
       request.status = 'accepted';
     }
-
-    // Log after update
-    console.log('After accept:', { 
-      units: request.units, 
-      donations: request.donations.length,
-      status: request.status 
-    });
 
     // Save the updated request
     const updatedRequest = await request.save();
@@ -125,7 +124,6 @@ exports.acceptRequest = async (req, res) => {
     res.status(500).json({ message: 'Error accepting request', error: error.message });
   }
 };
-
 
 exports.fulfillRequest = async (req, res) => {
   try {
@@ -160,7 +158,8 @@ exports.getNearbyRequests = async (req, res) => {
     const user = await User.findById(req.user._id);
 
     const requests = await Request.find({
-      status: 'pending',
+      status: { $in: ['pending', 'accepted'] }, // Show both pending and accepted requests
+      unitsLeft: { $gt: 0 }, // Only show requests with units left
       bloodType: user.bloodType,
       location: {
         $near: {
