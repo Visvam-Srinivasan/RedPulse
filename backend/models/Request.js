@@ -14,7 +14,14 @@ const requestSchema = new mongoose.Schema({
   units: {
     type: Number,
     required: true,
-    min: 1
+    min: 0,
+    validate: {
+      validator: function(v) {
+        // Allow 0 only if status is fulfilled
+        return v > 0 || this.status === 'fulfilled';
+      },
+      message: 'Units must be greater than 0 unless request is fulfilled'
+    }
   },
   totalUnits: {
     type: Number,

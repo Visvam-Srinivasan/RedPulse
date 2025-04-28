@@ -88,10 +88,27 @@ const History = () => {
                     </Typography>
                   </Box>
                   <Typography variant="body2">Status: {req.status}</Typography>
-                  {req.acceptedBy && (
-                    <Typography variant="body2">
-                      Accepted By: {req.acceptedBy.name} ({req.acceptedBy.userType === 'medicalUser' ? 'Medical Institution' : 'Donor'})
-                    </Typography>
+                  {req.donations && req.donations.length > 0 && (
+                    <Box sx={{ mt: 1 }}>
+                      <Typography variant="body2" fontWeight={500}>Contributors:</Typography>
+                      {req.donations.map((donation, dIdx) => {
+                        console.log('Donation data:', {
+                          donationId: donation._id,
+                          donor: donation.donor,
+                          donatedAt: donation.donatedAt
+                        });
+                        
+                        // The donor is now an object with name and userType
+                        const donorName = donation.donor?.name || 'Unknown Donor';
+                        const donorType = donation.donor?.userType || 'Donor';
+                        
+                        return (
+                          <Typography key={dIdx} variant="body2" sx={{ ml: 2 }}>
+                            • {donorName} ({donorType === 'medicalUser' ? 'Medical Institution' : 'Donor'})
+                          </Typography>
+                        );
+                      })}
+                    </Box>
                   )}
                   {req.fulfilledAt && <Typography variant="body2">Fulfilled At: {new Date(req.fulfilledAt).toLocaleString()}</Typography>}
                 </Box>

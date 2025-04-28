@@ -74,6 +74,11 @@ exports.createRequest = async (req, res) => {
 
 exports.acceptRequest = async (req, res) => {
   try {
+    // Defensive: Check user
+    if (!req.user || !req.user._id) {
+      return res.status(401).json({ message: 'Unauthorized: User information missing' });
+    }
+
     const request = await Request.findById(req.params.id);
     if (!request) {
       return res.status(404).json({ message: 'Request not found' });
@@ -89,26 +94,38 @@ exports.acceptRequest = async (req, res) => {
     if (request.donations.some(d => d.donor.toString() === req.user._id.toString())) {
       return res.status(400).json({ message: 'You have already donated for this request' });
     }
-    // Log before decrement
+
+    // Log before update
     console.log('Before accept:', { units: request.units, donations: request.donations.length });
+
     // Add donor and decrement units
     request.donations.push({ donor: req.user._id });
     request.units -= 1;
+
+    // Update status based on units
     if (request.units <= 0) {
       request.status = 'fulfilled';
       request.fulfilledAt = new Date();
     } else {
       request.status = 'accepted';
     }
-    // Log after decrement
-    console.log('After accept:', { units: request.units, donations: request.donations.length });
-    await request.save();
-    res.json(request);
+
+    // Log after update
+    console.log('After accept:', { 
+      units: request.units, 
+      donations: request.donations.length,
+      status: request.status 
+    });
+
+    // Save the updated request
+    const updatedRequest = await request.save();
+    res.json(updatedRequest);
   } catch (error) {
-    console.error('Error in acceptRequest:', error);
+    console.error('Error in acceptRequest:', error.message);
     res.status(500).json({ message: 'Error accepting request', error: error.message });
   }
 };
+
 
 exports.fulfillRequest = async (req, res) => {
   try {
@@ -165,11 +182,53 @@ exports.getNearbyRequests = async (req, res) => {
 // Get all requests made by the logged-in user
 exports.getMyRequests = async (req, res) => {
   try {
+    console.log('Fetching requests for user:', req.user._id);
+    
+    // Get requests with lean() for better performance
     const requests = await Request.find({ requester: req.user._id })
-      .populate('acceptedBy', 'name email userType')
+      .lean()
       .sort({ createdAt: -1 });
-    res.json(requests);
+    
+    // Get all unique donor IDs
+    const donorIds = [...new Set(requests.flatMap(req => 
+      req.donations.map(d => d.donor)
+    ).filter(id => id))];
+    
+    // Fetch all donors in one query
+    const donors = await User.find(
+      { _id: { $in: donorIds } },
+      'name userType'
+    ).lean();
+    
+    // Create a map of donor IDs to donor info
+    const donorMap = donors.reduce((acc, donor) => {
+      acc[donor._id.toString()] = {
+        name: donor.name,
+        userType: donor.userType
+      };
+      return acc;
+    }, {});
+    
+    // Attach donor info to each donation
+    const populatedRequests = requests.map(request => ({
+      ...request,
+      donations: request.donations.map(donation => ({
+        ...donation,
+        donor: donorMap[donation.donor.toString()] || null
+      }))
+    }));
+    
+    console.log('Sample populated request:', {
+      requestId: populatedRequests[0]?._id,
+      donations: populatedRequests[0]?.donations?.map(d => ({
+        donorId: d.donor,
+        donorInfo: donorMap[d.donor]
+      }))
+    });
+    
+    res.json(populatedRequests);
   } catch (error) {
+    console.error('Error in getMyRequests:', error);
     res.status(500).json({ message: 'Error fetching your requests', error: error.message });
   }
 };
