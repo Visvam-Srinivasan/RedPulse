@@ -14,6 +14,9 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [bloodCamps, setBloodCamps] = useState([]);
+  const [campDonations, setCampDonations] = useState({});
+  const [showDonations, setShowDonations] = useState({});
+  const [totalUnitsByBloodGroup, setTotalUnitsByBloodGroup] = useState({});
 
   // Always call hooks at the top level
   useEffect(() => {
@@ -54,12 +57,45 @@ const Dashboard = () => {
           headers: { Authorization: `Bearer ${token}` }
         });
         setBloodCamps(res.data);
+        let allDonations = [];
+        for (const camp of res.data) {
+          try {
+            const dRes = await axios.get(`http://localhost:5000/api/requests/blood-camps/${camp._id}/donations`, {
+              headers: { Authorization: `Bearer ${token}` }
+            });
+            allDonations = allDonations.concat(dRes.data);
+          } catch (err) {
+            // Ignore errors for now
+          }
+        }
+        const totals = {};
+        for (const donation of allDonations) {
+          const bg = donation.bloodType;
+          totals[bg] = (totals[bg] || 0) + 1;
+        }
+        setTotalUnitsByBloodGroup(totals);
       } catch (err) {
         // Optionally handle error
       }
     };
     fetchCamps();
   }, [user]);
+
+  // Handler to fetch and toggle donations for a camp
+  const handleViewDonations = async (campId) => {
+    setShowDonations((prev) => ({ ...prev, [campId]: !prev[campId] }));
+    if (!campDonations[campId]) {
+      try {
+        const token = localStorage.getItem('token');
+        const res = await axios.get(`http://localhost:5000/api/requests/blood-camps/${campId}/donations`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        setCampDonations((prev) => ({ ...prev, [campId]: res.data }));
+      } catch (err) {
+        setCampDonations((prev) => ({ ...prev, [campId]: [] }));
+      }
+    }
+  };
 
   // Now safe to return conditionally
   if (!user) {
@@ -189,6 +225,18 @@ const Dashboard = () => {
         {user?.userType === 'medicalUser' && bloodCamps.length > 0 && (
           <Box sx={{ mt: 4 }}>
             <Typography variant="h5" gutterBottom>My Blood Camps</Typography>
+            <Box sx={{ mb: 2 }}>
+              <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>Total Units Collected by Blood Group:</Typography>
+              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, mt: 1 }}>
+                {Object.keys(totalUnitsByBloodGroup).length === 0 ? (
+                  <Typography color="text.secondary">No donations yet.</Typography>
+                ) : (
+                  Object.entries(totalUnitsByBloodGroup).map(([bg, count]) => (
+                    <Chip key={bg} label={`${bg}: ${count}`} color="primary" sx={{ fontSize: 16, height: 32 }} />
+                  ))
+                )}
+              </Box>
+            </Box>
             {bloodCamps.map((camp) => (
               <Card key={camp._id} sx={{ mb: 2 }}>
                 <CardContent>
@@ -201,6 +249,31 @@ const Dashboard = () => {
                   <Typography>Description: {camp.description}</Typography>
                   <Typography>Status: {camp.isActive ? 'Active' : 'Inactive'}</Typography>
                   <Typography>Created At: {new Date(camp.createdAt).toLocaleString()}</Typography>
+                  <Button
+                    variant="outlined"
+                    color="primary"
+                    sx={{ mt: 2, mb: 1 }}
+                    onClick={() => handleViewDonations(camp._id)}
+                  >
+                    {showDonations[camp._id] ? 'Hide Donations' : 'View Donations'}
+                  </Button>
+                  {showDonations[camp._id] && (
+                    <Box sx={{ mt: 2 }}>
+                      <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>Donations:</Typography>
+                      {campDonations[camp._id] && campDonations[camp._id].length > 0 ? (
+                        campDonations[camp._id].map((donation, idx) => (
+                          <Box key={donation._id || idx} sx={{ mb: 1, p: 1, border: '1px solid #eee', borderRadius: 2 }}>
+                            <Typography>Name: {donation.donor?.name || 'Unknown'}</Typography>
+                            <Typography>Email: {donation.donor?.email || 'Unknown'}</Typography>
+                            <Typography>Blood Type: {donation.bloodType}</Typography>
+                            <Typography>Donated At: {new Date(donation.donatedAt).toLocaleString()}</Typography>
+                          </Box>
+                        ))
+                      ) : (
+                        <Typography color="text.secondary">No donations yet.</Typography>
+                      )}
+                    </Box>
+                  )}
                 </CardContent>
               </Card>
             ))}
