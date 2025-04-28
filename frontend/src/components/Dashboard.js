@@ -128,22 +128,32 @@ const Dashboard = () => {
                 </Typography>
                 {loading ? (
                   <Typography>Loading...</Typography>
+                ) : myRequests.length === 0 ? (
+                  <Typography color="text.secondary">No requests yet.</Typography>
                 ) : myRequests.filter(r => r.status === 'pending').length === 0 ? (
                   <Typography color="text.secondary">No pending requests.</Typography>
                 ) : (
                   myRequests
                     .filter(r => r.status === 'pending')
-                    .map((req, idx) => (
-                    <Box key={req._id || idx} sx={{ mb: 2, p: 1, border: '1px solid #eee', borderRadius: 2 }}>
-                      <Box sx={{ display: 'flex', alignItems: 'center', mb: 0.5 }}>
-                        <AddCircleOutlineIcon color="error" sx={{ mr: 1 }} />
-                        <Typography fontWeight={600}>
-                          Request for: {req.bloodType} | Total Units: {req.totalUnits} | Units Left: {req.unitsLeft}
-                        </Typography>
-                      </Box>
-                      <Typography variant="body2">Status: {req.status}</Typography>
-                    </Box>
-                  ))
+                    .map((req, idx) => {
+                      console.log('Rendering request:', req); // Debug log
+                      return (
+                        <Box key={req._id || idx} sx={{ mb: 2, p: 1, border: '1px solid #eee', borderRadius: 2 }}>
+                          <Box sx={{ display: 'flex', alignItems: 'center', mb: 0.5 }}>
+                            <AddCircleOutlineIcon color="error" sx={{ mr: 1 }} />
+                            <Typography fontWeight={600}>
+                              Request for: {req.bloodType} | Total Units: {req.totalUnits} | Units Left: {req.unitsLeft}
+                            </Typography>
+                          </Box>
+                          <Typography variant="body2">Status: {req.status}</Typography>
+                          {req.donations && req.donations.length > 0 && (
+                            <Typography variant="body2">
+                              Donations: {req.donations.length}
+                            </Typography>
+                          )}
+                        </Box>
+                      );
+                    })
                 )}
               </CardContent>
             </Card>
