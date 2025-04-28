@@ -96,27 +96,7 @@ function App() {
       <CssBaseline />
       <AuthProvider>
         <Router>
-<<<<<<< Updated upstream
-          <Box
-            sx={{
-              minHeight: '100vh',
-              display: 'flex',
-              flexDirection: 'column',
-            }}
-          >
-            <Navbar />
-            <Box
-              component="main"
-              sx={{
-                flexGrow: 1,
-                pt: { xs: 2, sm: 3 },
-                pb: { xs: 4, sm: 6 },
-                px: { xs: 2, sm: 3 },
-                maxWidth: '100%',
-                mx: 'auto',
-              }}
-            >
-=======
+
           <Box sx={{ 
             minHeight: '100vh',
             backgroundColor: 'background.default',
@@ -128,7 +108,7 @@ function App() {
               pb: 4,
               minHeight: 'calc(100vh - 64px)',
             }}>
->>>>>>> Stashed changes
+
               <Routes>
                 <Route path="/login" element={<Login />} />
                 <Route path="/register" element={<Register />} />
