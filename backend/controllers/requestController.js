@@ -1,5 +1,6 @@
 const Request = require('../models/Request');
 const User = require('../models/User');
+const CampDonation = require('../models/CampDonation');
 
 exports.createRequest = async (req, res) => {
   try {
@@ -151,6 +152,22 @@ exports.acceptRequest = async (req, res) => {
       // Prevent the same donor from donating twice
       if (request.donations.some(d => d.donor.toString() === req.user._id.toString())) {
         return res.status(400).json({ message: 'You have already donated for this request' });
+      }
+      // 30-day buffer for common users
+      const oneMonthAgo = new Date();
+      oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
+      // Check Request donations
+      const recentRequestDonation = await Request.findOne({
+        'donations.donor': req.user._id,
+        'donations.donatedAt': { $gte: oneMonthAgo }
+      });
+      // Check CampDonation
+      const recentCampDonation = await CampDonation.findOne({
+        donor: req.user._id,
+        donatedAt: { $gte: oneMonthAgo }
+      });
+      if (recentRequestDonation || recentCampDonation) {
+        return res.status(400).json({ message: 'You can only donate once every 30 days.' });
       }
       // Add donor and decrement units left by 1
       request.donations.push({ donor: req.user._id });

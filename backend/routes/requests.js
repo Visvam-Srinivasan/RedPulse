@@ -39,5 +39,9 @@ router.get('/all', checkUserType('medicalUser'), getAllRequests);
 // Blood camp routes (for medical users)
 router.post('/blood-camps', checkUserType('medicalUser'), bloodCampController.createBloodCamp);
 router.get('/blood-camps', checkUserType('medicalUser'), bloodCampController.getMyBloodCamps);
+// Public/any authenticated user routes for blood camp donations
+router.get('/blood-camps/active', bloodCampController.getActiveBloodCamps);
+router.post('/blood-camps/:campId/donate', bloodCampController.donateToCamp);
+router.get('/blood-camps/:campId/donations', bloodCampController.getCampDonations);
 
 module.exports = router; 

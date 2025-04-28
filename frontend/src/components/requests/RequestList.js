@@ -103,6 +103,72 @@ const RequestList = () => {
   // For medical users, track units to donate per request
   const [unitsToDonate, setUnitsToDonate] = useState({});
 
+  // Blood camps state
+  const [bloodCamps, setBloodCamps] = useState([]);
+  const [campDonationStatus, setCampDonationStatus] = useState({}); // { [campId]: 'donated' | 'error' | 'success' | null }
+
+  // Fetch active blood camps
+  useEffect(() => {
+    const fetchCamps = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const res = await axios.get('http://localhost:5000/api/requests/blood-camps/active', {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        setBloodCamps(res.data);
+      } catch (err) {
+        // Optionally handle error
+      }
+    };
+    fetchCamps();
+  }, []);
+
+  // Track which camps the user has donated to (and 30-day buffer)
+  const [userCampDonations, setUserCampDonations] = useState([]); // [{ camp: id, donatedAt }]
+  useEffect(() => {
+    const fetchUserCampDonations = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        // Get all donations for all camps for this user
+        const res = await axios.get('http://localhost:5000/api/requests/blood-camps/active', {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        // For each camp, fetch donations for that camp and filter for this user
+        const campIds = res.data.map(c => c._id);
+        let donations = [];
+        for (const campId of campIds) {
+          const dRes = await axios.get(`http://localhost:5000/api/requests/blood-camps/${campId}/donations`, {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+          const userDonation = dRes.data.find(d => d.donor && d.donor._id === user.id);
+          if (userDonation) {
+            donations.push({ camp: campId, donatedAt: userDonation.donatedAt });
+          }
+        }
+        setUserCampDonations(donations);
+      } catch (err) {
+        // Optionally handle error
+      }
+    };
+    if (user && user.userType === 'commonUser') fetchUserCampDonations();
+  }, [user]);
+
+  // Donate to a camp
+  const handleCampDonate = async (campId) => {
+    setCampDonationStatus(s => ({ ...s, [campId]: null }));
+    try {
+      const token = localStorage.getItem('token');
+      await axios.post(`http://localhost:5000/api/requests/blood-camps/${campId}/donate`, {}, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setCampDonationStatus(s => ({ ...s, [campId]: 'success' }));
+      setUserCampDonations(donations => [...donations, { camp: campId, donatedAt: new Date().toISOString() }]);
+    } catch (err) {
+      setCampDonationStatus(s => ({ ...s, [campId]: 'error' }));
+      setError(err.response?.data?.message || 'An error occurred while donating to the camp');
+    }
+  };
+
   return (
     <Container maxWidth="lg">
       <Box sx={{ mt: 8, mb: 4 }}>
@@ -247,6 +313,93 @@ const RequestList = () => {
           })()}
         </Grid>
       </Box>
+      {/* Blood Camps Section */}
+      {bloodCamps.length > 0 && (
+        <Box sx={{ mt: 6 }}>
+          <Typography variant="h4" gutterBottom sx={{ fontWeight: 700, color: '#b71c1c' }}>
+            Blood Camps
+          </Typography>
+          <Grid container spacing={3}>
+            {bloodCamps.map((camp) => {
+              // Check if user has donated to this camp or within 30 days
+              let donated = false;
+              let within30Days = false;
+              if (user && user.userType === 'commonUser') {
+                const userDonation = userCampDonations.find(d => d.camp === camp._id);
+                if (userDonation) {
+                  donated = true;
+                  const donatedAt = new Date(userDonation.donatedAt);
+                  const now = new Date();
+                  const diffDays = (now - donatedAt) / (1000 * 60 * 60 * 24);
+                  if (diffDays < 30) within30Days = true;
+                }
+              }
+              return (
+                <Grid item xs={12} sm={6} md={4} key={camp._id}>
+                  <Card sx={{ borderTop: '6px solid #FFD600' }}>
+                    <CardContent>
+                      <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                        <Box sx={{
+                          width: 16, height: 16, borderRadius: '50%',
+                          background: '#FFD600',
+                          mr: 1, border: '2px solid #fff', boxShadow: '0 0 4px #ccc'
+                        }} />
+                        <Typography variant="subtitle1" fontWeight={700} sx={{ color: '#FFD600' }}>
+                          Blood Camp
+                        </Typography>
+                      </Box>
+                      <Typography variant="h6" gutterBottom sx={{ fontWeight: 600 }}>
+                        {camp.name}
+                      </Typography>
+                      <Typography variant="body1" gutterBottom>
+                        Date: {camp.date}
+                      </Typography>
+                      <Typography variant="body1" gutterBottom>
+                        Time: {camp.startTime} - {camp.endTime}
+                      </Typography>
+                      <Typography variant="body1" gutterBottom>
+                        Location: {camp.location}, {camp.city}, {camp.state}
+                      </Typography>
+                      <Typography variant="body1" gutterBottom>
+                        Contact: {camp.contactNumber}
+                      </Typography>
+                      <Typography variant="body1" gutterBottom>
+                        Email: {camp.email}
+                      </Typography>
+                      <Typography variant="body1" gutterBottom>
+                        Description: {camp.description}
+                      </Typography>
+                      <Typography variant="body1" gutterBottom>
+                        Status: {camp.isActive ? 'Active' : 'Inactive'}
+                      </Typography>
+                      <Typography variant="body1" gutterBottom>
+                        Created At: {new Date(camp.createdAt).toLocaleString()}
+                      </Typography>
+                      {user && user.userType === 'commonUser' && (
+                        <Button
+                          variant="contained"
+                          color="primary"
+                          sx={{ mt: 2, fontWeight: 700, fontSize: 18, px: 4, py: 1.5, borderRadius: 3 }}
+                          disabled={donated || within30Days || campDonationStatus[camp._id] === 'success'}
+                          onClick={() => handleCampDonate(camp._id)}
+                        >
+                          {donated ? 'Already Donated' : within30Days ? 'Wait 30 Days' : 'Donate'}
+                        </Button>
+                      )}
+                      {campDonationStatus[camp._id] === 'success' && (
+                        <Typography color="success.main" sx={{ mt: 1 }}>Thank you for your donation!</Typography>
+                      )}
+                      {campDonationStatus[camp._id] === 'error' && (
+                        <Typography color="error.main" sx={{ mt: 1 }}>{error}</Typography>
+                      )}
+                    </CardContent>
+                  </Card>
+                </Grid>
+              );
+            })}
+          </Grid>
+        </Box>
+      )}
     </Container>
   );
 };
