@@ -36,11 +36,7 @@ const Navbar = () => {
   };
 
   return (
-<<<<<<< Updated upstream
-    <AppBar position="static">
-      <Toolbar>
-        <BloodtypeIcon color="error" sx={{ fontSize: 36, mr: 1, cursor: 'pointer' }} onClick={() => (user ? navigate('/dashboard') : navigate('/'))} />
-=======
+
     <AppBar 
       position="static" 
       sx={{ 
@@ -105,7 +101,7 @@ const Navbar = () => {
         }
       }}>
         <BloodtypeIcon color="error" sx={{ fontSize: 36, mr: 1, cursor: 'pointer' }} onClick={() => navigate('/')} />
->>>>>>> Stashed changes
+
         <Typography
           variant="h6"
           component="div"
