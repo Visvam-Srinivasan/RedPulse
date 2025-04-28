@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Navigate } from 'react-router-dom';
 import { Container, Typography, Box, Button, Grid, Card, CardContent, Chip, Alert } from '@mui/material';
 import LocalHospitalIcon from '@mui/icons-material/LocalHospital';
 import BloodtypeIcon from '@mui/icons-material/Bloodtype';
@@ -15,6 +15,11 @@ const Dashboard = () => {
   const [myDonations, setMyDonations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+
+  // Redirect to home if not logged in
+  if (!user) {
+    return <Navigate to="/" replace />;
+  }
 
   useEffect(() => {
     const fetchHistory = async () => {
