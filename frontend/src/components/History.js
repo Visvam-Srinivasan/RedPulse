@@ -59,7 +59,6 @@ const History = () => {
                       Donated to: {don.requester?.name || 'Unknown'} ({don.requester?.userType === 'medicalUser' ? 'Medical Institution' : 'Donor'})
                     </Typography>
                   </Box>
-                  <Typography variant="body2">Blood Type: {don.bloodType} | Units: {don.units}</Typography>
                   <Typography variant="body2">Status: {don.status}</Typography>
                   {don.fulfilledAt && <Typography variant="body2">Fulfilled At: {new Date(don.fulfilledAt).toLocaleString()}</Typography>}
                 </Box>

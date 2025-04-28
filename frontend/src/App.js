@@ -10,6 +10,7 @@ import RequestList from './components/requests/RequestList';
 import RequestForm from './components/requests/RequestForm';
 import History from './components/History';
 import { AuthProvider } from './context/AuthContext';
+import Home from './components/Home';
 
 const theme = createTheme({
   palette: {
@@ -36,7 +37,7 @@ function App() {
             <Route path="/requests" element={<RequestList />} />
             <Route path="/requests/new" element={<RequestForm />} />
             <Route path="/history" element={<History />} />
-            <Route path="/" element={<Dashboard />} />
+            <Route path="/" element={<Home />} />
           </Routes>
         </Router>
       </AuthProvider>
