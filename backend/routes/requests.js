@@ -10,6 +10,7 @@ const {
   getMyDonations,
   getAllRequests
 } = require('../controllers/requestController');
+const bloodCampController = require('../controllers/bloodCampController');
 
 // Protected routes
 router.use(auth);
@@ -34,5 +35,9 @@ router.get('/my-donations', getMyDonations);
 
 // Get all requests (for medical users, not filtered by blood group)
 router.get('/all', checkUserType('medicalUser'), getAllRequests);
+
+// Blood camp routes (for medical users)
+router.post('/blood-camps', checkUserType('medicalUser'), bloodCampController.createBloodCamp);
+router.get('/blood-camps', checkUserType('medicalUser'), bloodCampController.getMyBloodCamps);
 
 module.exports = router; 

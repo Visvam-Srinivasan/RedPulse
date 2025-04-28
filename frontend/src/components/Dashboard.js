@@ -3,7 +3,6 @@ import { useNavigate, Navigate } from 'react-router-dom';
 import { Container, Typography, Box, Button, Grid, Card, CardContent, Chip, Alert } from '@mui/material';
 import LocalHospitalIcon from '@mui/icons-material/LocalHospital';
 import BloodtypeIcon from '@mui/icons-material/Bloodtype';
-import VolunteerActivismIcon from '@mui/icons-material/VolunteerActivism';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
@@ -12,49 +11,60 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [myRequests, setMyRequests] = useState([]);
-  const [myDonations, setMyDonations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [bloodCamps, setBloodCamps] = useState([]);
 
-  // Redirect to home if not logged in
-  if (!user) {
-    return <Navigate to="/" replace />;
-  }
-
+  // Always call hooks at the top level
   useEffect(() => {
+    if (!user) return;
     const fetchHistory = async () => {
       try {
         const token = localStorage.getItem('token');
-        const [reqRes, donRes] = await Promise.all([
+        const [reqRes] = await Promise.all([
           axios.get('http://localhost:5000/api/requests/my-requests', { 
-            headers: { Authorization: `Bearer ${token}` } 
-          }),
-          axios.get('http://localhost:5000/api/requests/my-donations', { 
             headers: { Authorization: `Bearer ${token}` } 
           })
         ]);
-        
-        console.log('Fetched requests:', reqRes.data);
         setMyRequests(reqRes.data);
-        setMyDonations(donRes.data);
       } catch (err) {
-        console.error('Error fetching data:', err);
         setError(err.response?.data?.message || 'An error occurred while fetching data');
       } finally {
         setLoading(false);
       }
     };
     fetchHistory();
-  }, []);
+  }, [user]);
 
-  // Debug: Log the filtered pending requests
   useEffect(() => {
+    if (!user) return;
     if (myRequests.length > 0) {
       const pendingRequests = myRequests.filter(r => r.status === 'pending');
       console.log('Pending requests:', pendingRequests);
       console.log('All requests:', myRequests);
     }
-  }, [myRequests]);
+  }, [user, myRequests]);
+
+  useEffect(() => {
+    if (!user || user.userType !== 'medicalUser') return;
+    const fetchCamps = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const res = await axios.get('http://localhost:5000/api/requests/blood-camps', {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        setBloodCamps(res.data);
+      } catch (err) {
+        // Optionally handle error
+      }
+    };
+    fetchCamps();
+  }, [user]);
+
+  // Now safe to return conditionally
+  if (!user) {
+    return <Navigate to="/" replace />;
+  }
 
   return (
     <Container maxWidth="lg">
@@ -113,6 +123,17 @@ const Dashboard = () => {
                       Request Blood
                     </Button>
                   )}
+                  {user?.userType === 'medicalUser' && (
+                    <Button
+                      variant="contained"
+                      color="primary"
+                      fullWidth
+                      sx={{ mb: 2 }}
+                      onClick={() => navigate('/blood-camp/new')}
+                    >
+                      Set Blood Camp
+                    </Button>
+                  )}
                   <Button
                     variant="outlined"
                     color="primary"
@@ -164,6 +185,27 @@ const Dashboard = () => {
             </Card>
           </Grid>
         </Grid>
+        {/* Show blood camps for medical users */}
+        {user?.userType === 'medicalUser' && bloodCamps.length > 0 && (
+          <Box sx={{ mt: 4 }}>
+            <Typography variant="h5" gutterBottom>My Blood Camps</Typography>
+            {bloodCamps.map((camp) => (
+              <Card key={camp._id} sx={{ mb: 2 }}>
+                <CardContent>
+                  <Typography variant="h6">{camp.name}</Typography>
+                  <Typography>Date: {camp.date}</Typography>
+                  <Typography>Time: {camp.startTime} - {camp.endTime}</Typography>
+                  <Typography>Location: {camp.location}, {camp.city}, {camp.state}</Typography>
+                  <Typography>Contact: {camp.contactNumber}</Typography>
+                  <Typography>Email: {camp.email}</Typography>
+                  <Typography>Description: {camp.description}</Typography>
+                  <Typography>Status: {camp.isActive ? 'Active' : 'Inactive'}</Typography>
+                  <Typography>Created At: {new Date(camp.createdAt).toLocaleString()}</Typography>
+                </CardContent>
+              </Card>
+            ))}
+          </Box>
+        )}
       </Box>
     </Container>
   );
