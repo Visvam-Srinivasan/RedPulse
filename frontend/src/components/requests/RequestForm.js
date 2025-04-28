@@ -254,17 +254,16 @@ const RequestForm = () => {
               </Button>
             </Box>
           )}
-          {user.userType === 'medicalUser' && (
-            <TextField
-              fullWidth
-              label="Hospital Name"
-              name="hospitalName"
-              value={formData.hospitalName}
-              onChange={handleChange}
-              margin="normal"
-              required
-            />
-          )}
+          {/* Hospital Name field for all users */}
+          <TextField
+            fullWidth
+            label="Hospital Name"
+            name="hospitalName"
+            value={formData.hospitalName}
+            onChange={handleChange}
+            margin="normal"
+            required={user && user.userType === 'medicalUser'}
+          />
           <form onSubmit={handleSubmit}>
             <FormControl fullWidth margin="normal">
               <InputLabel>Blood Type</InputLabel>

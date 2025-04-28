@@ -27,6 +27,11 @@ const RequestCard = ({ request, onAccept, onCancel }) => {
           <p className="text-sm text-gray-600">
             {request.unitsLeft} of {request.totalUnits} units left
           </p>
+          {request.hospitalName && (
+            <p className="text-sm text-gray-600">
+              Hospital: {request.hospitalName}
+            </p>
+          )}
           <p className="text-sm text-gray-600">
             Status: {request.status.charAt(0).toUpperCase() + request.status.slice(1)}
           </p>

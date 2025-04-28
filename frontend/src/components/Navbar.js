@@ -38,12 +38,12 @@ const Navbar = () => {
   return (
     <AppBar position="static">
       <Toolbar>
-        <BloodtypeIcon color="error" sx={{ fontSize: 36, mr: 1, cursor: 'pointer' }} onClick={() => navigate('/')} />
+        <BloodtypeIcon color="error" sx={{ fontSize: 36, mr: 1, cursor: 'pointer' }} onClick={() => user ? navigate('/dashboard') : navigate('/')} />
         <Typography
           variant="h6"
           component="div"
           sx={{ flexGrow: 1, display: 'flex', alignItems: 'center', cursor: 'pointer', fontWeight: 700 }}
-          onClick={() => navigate('/')}
+          onClick={() => user ? navigate('/dashboard') : navigate('/')}
         >
           Blood Donation App
         </Typography>
