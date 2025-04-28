@@ -138,14 +138,14 @@ const RequestList = () => {
                       <Typography variant="body1" gutterBottom>
                         Distance: {request.maxDistance} km
                       </Typography>
+                      {request.hospitalName && (
+                        <Typography variant="body1" gutterBottom>
+                          Hospital: {request.hospitalName}
+                        </Typography>
+                      )}
                       {request.notes && (
                         <Typography variant="body1" gutterBottom>
                           Notes: {request.notes}
-                        </Typography>
-                      )}
-                      {request.hospitalName && (
-                        <Typography variant="body1" gutterBottom>
-                          Hospital Name: {request.hospitalName}
                         </Typography>
                       )}
                       <Typography variant="body1" gutterBottom>
