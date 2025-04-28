@@ -14,17 +14,21 @@ import {
   MenuItem,
   Collapse,
   IconButton,
+  Grid
 } from '@mui/material';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 import MyLocationIcon from '@mui/icons-material/MyLocation';
 import axios from 'axios';
+import { useAuth } from '../../context/AuthContext';
 
 const Register = () => {
   const navigate = useNavigate();
+  const { login } = useAuth();
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     password: '',
+    confirmPassword: '',
     userType: 'commonUser',
     bloodType: '',
     phoneNumber: '',
@@ -147,7 +151,11 @@ const Register = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+    if (formData.password !== formData.confirmPassword) {
+      setError('Passwords do not match');
+      return;
+    }
+
     // Validate required fields
     if (!formData.name || !formData.email || !formData.password || !formData.phoneNumber || !formData.userType) {
       setError('Please fill in all required fields');
@@ -175,9 +183,7 @@ const Register = () => {
 
     try {
       const res = await axios.post('http://localhost:5000/api/auth/register', formData);
-      console.log('Registration successful:', res.data);
-      localStorage.setItem('token', res.data.token);
-      localStorage.setItem('user', JSON.stringify(res.data.user));
+      login(res.data.user, res.data.token);
       setRegistrationSuccess(true);
       setError('');
     } catch (err) {
@@ -215,9 +221,9 @@ const Register = () => {
   };
 
   return (
-    <Container maxWidth="sm">
-      <Box sx={{ mt: 8 }}>
-        <Paper elevation={3} sx={{ p: 4, overflow: 'visible' }}>
+    <Container maxWidth="md">
+      <Box sx={{ mt: 8, mb: 4 }}>
+        <Paper elevation={3} sx={{ p: 4 }}>
           <Typography variant="h4" component="h1" gutterBottom align="center">
             Register
           </Typography>
@@ -275,112 +281,123 @@ const Register = () => {
             </Alert>
           )}
           <form onSubmit={handleSubmit}>
-            <TextField
-              fullWidth
-              label="Name"
-              name="name"
-              value={formData.name}
-              onChange={handleChange}
-              margin="normal"
-              required
-            />
-            <TextField
-              fullWidth
-              label="Email"
-              name="email"
-              type="email"
-              value={formData.email}
-              onChange={handleChange}
-              margin="normal"
-              required
-            />
-            <TextField
-              fullWidth
-              label="Password"
-              name="password"
-              type="password"
-              value={formData.password}
-              onChange={handleChange}
-              margin="normal"
-              required
-            />
-            <TextField
-              fullWidth
-              label="Phone Number"
-              name="phoneNumber"
-              value={formData.phoneNumber}
-              onChange={handleChange}
-              margin="normal"
-              required
-            />
-            <FormControl fullWidth margin="normal" sx={{ mb: 2, position: 'relative', zIndex: 2 }}>
-              <InputLabel id="user-type-label">User Type</InputLabel>
-              <Select
-                labelId="user-type-label"
-                name="userType"
-                value={formData.userType}
-                onChange={handleChange}
-                required
-                MenuProps={{
-                  PaperProps: {
-                    sx: {
-                      maxHeight: 300,
-                      position: 'absolute',
-                      zIndex: 3
-                    }
-                  },
-                  anchorOrigin: {
-                    vertical: 'bottom',
-                    horizontal: 'left',
-                  },
-                  transformOrigin: {
-                    vertical: 'top',
-                    horizontal: 'left',
-                  }
-                }}
-              >
-                <MenuItem value="commonUser">Donor</MenuItem>
-                <MenuItem value="medicalUser">Medical Institution</MenuItem>
-              </Select>
-            </FormControl>
-            {formData.userType === 'commonUser' && (
-              <FormControl fullWidth margin="normal" sx={{ mb: 2, position: 'relative', zIndex: 1 }}>
-                <InputLabel id="blood-type-label">Blood Type</InputLabel>
-                <Select
-                  labelId="blood-type-label"
+            <Grid container spacing={2}>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  fullWidth
+                  label="Name"
+                  name="name"
+                  value={formData.name}
+                  onChange={handleChange}
+                  margin="normal"
+                  required
+                />
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  fullWidth
+                  label="Email"
+                  name="email"
+                  type="email"
+                  value={formData.email}
+                  onChange={handleChange}
+                  margin="normal"
+                  required
+                />
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  fullWidth
+                  label="Password"
+                  name="password"
+                  type="password"
+                  value={formData.password}
+                  onChange={handleChange}
+                  margin="normal"
+                  required
+                />
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  fullWidth
+                  label="Confirm Password"
+                  name="confirmPassword"
+                  type="password"
+                  value={formData.confirmPassword}
+                  onChange={handleChange}
+                  margin="normal"
+                  required
+                />
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  fullWidth
+                  label="Phone Number"
+                  name="phoneNumber"
+                  value={formData.phoneNumber}
+                  onChange={handleChange}
+                  margin="normal"
+                  required
+                />
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  fullWidth
+                  select
+                  label="Blood Type"
                   name="bloodType"
                   value={formData.bloodType}
                   onChange={handleChange}
+                  margin="normal"
                   required
-                  MenuProps={{
-                    PaperProps: {
-                      sx: {
-                        maxHeight: 300,
-                        position: 'absolute',
-                        zIndex: 3
-                      }
-                    },
-                    anchorOrigin: {
-                      vertical: 'bottom',
-                      horizontal: 'left',
-                    },
-                    transformOrigin: {
-                      vertical: 'top',
-                      horizontal: 'left',
-                    }
+                  SelectProps={{
+                    native: true
                   }}
                 >
-                  <MenuItem value="A+">A+</MenuItem>
-                  <MenuItem value="A-">A-</MenuItem>
-                  <MenuItem value="B+">B+</MenuItem>
-                  <MenuItem value="B-">B-</MenuItem>
-                  <MenuItem value="AB+">AB+</MenuItem>
-                  <MenuItem value="AB-">AB-</MenuItem>
-                  <MenuItem value="O+">O+</MenuItem>
-                  <MenuItem value="O-">O-</MenuItem>
-                </Select>
-              </FormControl>
-            )}
+                  <option value="">Select Blood Type</option>
+                  <option value="A+">A+</option>
+                  <option value="A-">A-</option>
+                  <option value="B+">B+</option>
+                  <option value="B-">B-</option>
+                  <option value="AB+">AB+</option>
+                  <option value="AB-">AB-</option>
+                  <option value="O+">O+</option>
+                  <option value="O-">O-</option>
+                </TextField>
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <FormControl fullWidth margin="normal" sx={{ mb: 2, position: 'relative', zIndex: 2 }}>
+                  <InputLabel id="user-type-label">User Type</InputLabel>
+                  <Select
+                    labelId="user-type-label"
+                    name="userType"
+                    value={formData.userType}
+                    onChange={handleChange}
+                    required
+                    MenuProps={{
+                      PaperProps: {
+                        sx: {
+                          maxHeight: 300,
+                          position: 'absolute',
+                          zIndex: 3
+                        }
+                      },
+                      anchorOrigin: {
+                        vertical: 'bottom',
+                        horizontal: 'left',
+                      },
+                      transformOrigin: {
+                        vertical: 'top',
+                        horizontal: 'left',
+                      }
+                    }}
+                  >
+                    <MenuItem value="commonUser">Donor</MenuItem>
+                    <MenuItem value="medicalUser">Medical Institution</MenuItem>
+                  </Select>
+                </FormControl>
+              </Grid>
+            </Grid>
             
             <Box sx={{ mt: 2 }}>
               <Button
@@ -419,10 +436,10 @@ const Register = () => {
 
             <Button
               type="submit"
+              fullWidth
               variant="contained"
               color="primary"
-              fullWidth
-              sx={{ mt: 3 }}
+              sx={{ mt: 3, mb: 2 }}
             >
               Register
             </Button>

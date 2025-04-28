@@ -6,10 +6,11 @@ import BloodtypeIcon from '@mui/icons-material/Bloodtype';
 import VolunteerActivismIcon from '@mui/icons-material/VolunteerActivism';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import axios from 'axios';
+import { useAuth } from '../context/AuthContext';
 
 const Dashboard = () => {
   const navigate = useNavigate();
-  const user = JSON.parse(localStorage.getItem('user'));
+  const { user } = useAuth();
   const [myRequests, setMyRequests] = useState([]);
   const [myDonations, setMyDonations] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -37,7 +38,7 @@ const Dashboard = () => {
     <Container maxWidth="lg">
       <Box sx={{ mt: 8, mb: 4 }}>
         <Typography variant="h4" component="h1" gutterBottom>
-          Welcome, {user.name}!
+          Welcome, {user?.name}!
         </Typography>
         <Grid container spacing={3}>
           <Grid item xs={12} md={6}>
@@ -47,20 +48,20 @@ const Dashboard = () => {
                   User Information
                 </Typography>
                 <Typography color="textSecondary" gutterBottom>
-                  Email: {user.email}
+                  Email: {user?.email}
                 </Typography>
                 <Typography color="textSecondary" gutterBottom>
-                  User Type: {user.userType === 'medicalUser' ? 'Medical Institution' : 'Donor'}
+                  User Type: {user?.userType === 'medicalUser' ? 'Medical Institution' : 'Donor'}
                 </Typography>
-                {user.bloodType && (
+                {user?.bloodType && (
                   <Typography color="textSecondary" gutterBottom>
-                    Blood Type: {user.bloodType}
+                    Blood Type: {user?.bloodType}
                   </Typography>
                 )}
                 <Box sx={{ mt: 2 }}>
                   <Chip
-                    icon={user.userType === 'medicalUser' ? <LocalHospitalIcon /> : <BloodtypeIcon />}
-                    label={user.userType === 'medicalUser' ? 'Medical Institution' : 'Donor'}
+                    icon={user?.userType === 'medicalUser' ? <LocalHospitalIcon /> : <BloodtypeIcon />}
+                    label={user?.userType === 'medicalUser' ? 'Medical Institution' : 'Donor'}
                     color="primary"
                   />
                 </Box>
@@ -74,7 +75,7 @@ const Dashboard = () => {
                   Quick Actions
                 </Typography>
                 <Box sx={{ mt: 2 }}>
-                  {user.userType === 'commonUser' && (
+                  {user?.userType === 'commonUser' && (
                     <Button
                       variant="contained"
                       color="primary"
