@@ -36,9 +36,76 @@ const Navbar = () => {
   };
 
   return (
+<<<<<<< Updated upstream
     <AppBar position="static">
       <Toolbar>
         <BloodtypeIcon color="error" sx={{ fontSize: 36, mr: 1, cursor: 'pointer' }} onClick={() => (user ? navigate('/dashboard') : navigate('/'))} />
+=======
+    <AppBar 
+      position="static" 
+      sx={{ 
+        transition: 'all 0.3s ease-in-out',
+        '&:hover': {
+          '& .MuiToolbar-root': {
+            minHeight: '90px',
+            transition: 'all 0.3s ease-in-out',
+            '& .MuiButton-root': {
+              fontSize: '1.1rem',
+              padding: '6px 12px',
+              transition: 'all 0.3s ease-in-out'
+            },
+            '& .MuiTypography-root': {
+              fontSize: '1.5rem',
+              transition: 'all 0.3s ease-in-out'
+            },
+            '& .MuiSvgIcon-root': {
+              fontSize: '2.2rem',
+              transition: 'all 0.3s ease-in-out'
+            },
+            '& .MuiChip-root': {
+              height: '34px',
+              '& .MuiChip-label': {
+                fontSize: '0.95rem',
+                transition: 'all 0.3s ease-in-out'
+              },
+              '& .MuiSvgIcon-root': {
+                fontSize: '1.3rem',
+                transition: 'all 0.3s ease-in-out'
+              }
+            }
+          }
+        }
+      }}
+    >
+      <Toolbar sx={{ 
+        minHeight: '64px',
+        transition: 'all 0.3s ease-in-out',
+        '& .MuiButton-root': {
+          fontSize: '1rem',
+          transition: 'all 0.3s ease-in-out'
+        },
+        '& .MuiTypography-root': {
+          fontSize: '1.25rem',
+          transition: 'all 0.3s ease-in-out'
+        },
+        '& .MuiSvgIcon-root': {
+          fontSize: '2rem',
+          transition: 'all 0.3s ease-in-out'
+        },
+        '& .MuiChip-root': {
+          height: '32px',
+          '& .MuiChip-label': {
+            fontSize: '0.875rem',
+            transition: 'all 0.3s ease-in-out'
+          },
+          '& .MuiSvgIcon-root': {
+            fontSize: '1.25rem',
+            transition: 'all 0.3s ease-in-out'
+          }
+        }
+      }}>
+        <BloodtypeIcon color="error" sx={{ fontSize: 36, mr: 1, cursor: 'pointer' }} onClick={() => navigate('/')} />
+>>>>>>> Stashed changes
         <Typography
           variant="h6"
           component="div"
@@ -56,7 +123,7 @@ const Navbar = () => {
               History
             </Button>
             {user.userType === 'medicalUser' && (
-              <Button color="inherit" onClick={() => navigate('/requests/new')}>
+              <Button color="inherit" onClick={() => navigate('/requests/new')} >
                 New Request
               </Button>
             )}
