@@ -10,6 +10,7 @@ const {
   getMyDonations,
   getAllRequests
 } = require('../controllers/requestController');
+const bloodCampController = require('../controllers/bloodCampController');
 
 // Protected routes
 router.use(auth);
@@ -17,8 +18,8 @@ router.use(auth);
 // Create request (for medical users)
 router.post('/', createRequest);
 
-// Accept request (for common users)
-router.post('/:id/accept', checkUserType('commonUser'), acceptRequest);
+// Accept request (for both common users and medical users)
+router.post('/:id/accept', acceptRequest);
 
 // Fulfill request (for medical users)
 router.post('/:id/fulfill', checkUserType('medicalUser'), fulfillRequest);
@@ -34,5 +35,13 @@ router.get('/my-donations', getMyDonations);
 
 // Get all requests (for medical users, not filtered by blood group)
 router.get('/all', checkUserType('medicalUser'), getAllRequests);
+
+// Blood camp routes (for medical users)
+router.post('/blood-camps', checkUserType('medicalUser'), bloodCampController.createBloodCamp);
+router.get('/blood-camps', checkUserType('medicalUser'), bloodCampController.getMyBloodCamps);
+// Public/any authenticated user routes for blood camp donations
+router.get('/blood-camps/active', bloodCampController.getActiveBloodCamps);
+router.post('/blood-camps/:campId/donate', bloodCampController.donateToCamp);
+router.get('/blood-camps/:campId/donations', bloodCampController.getCampDonations);
 
 module.exports = router; 

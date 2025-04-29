@@ -11,6 +11,7 @@ import RequestList from './components/requests/RequestList';
 import RequestForm from './components/requests/RequestForm';
 import History from './components/History';
 import { AuthProvider } from './context/AuthContext';
+import Home from './components/Home';
 
 // Theme configuration
 const theme = createTheme({
@@ -96,30 +97,16 @@ function App() {
       <CssBaseline />
       <AuthProvider>
         <Router>
-
-          <Box sx={{ 
-            minHeight: '100vh',
-            backgroundColor: 'background.default',
-            backgroundImage: 'linear-gradient(to bottom, #fff5f5, #ffe5e5)',
-          }}>
-            <Navbar />
-            <Box sx={{ 
-              pt: 2,
-              pb: 4,
-              minHeight: 'calc(100vh - 64px)',
-            }}>
-
-              <Routes>
-                <Route path="/login" element={<Login />} />
-                <Route path="/register" element={<Register />} />
-                <Route path="/dashboard" element={<Dashboard />} />
-                <Route path="/requests" element={<RequestList />} />
-                <Route path="/requests/new" element={<RequestForm />} />
-                <Route path="/history" element={<History />} />
-                <Route path="/" element={<Dashboard />} />
-              </Routes>
-            </Box>
-          </Box>
+          <Navbar />
+          <Routes>
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/requests" element={<RequestList />} />
+            <Route path="/requests/new" element={<RequestForm />} />
+            <Route path="/history" element={<History />} />
+            <Route path="/" element={<Home />} />
+          </Routes>
         </Router>
       </AuthProvider>
     </ThemeProvider>

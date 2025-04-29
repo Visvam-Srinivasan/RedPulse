@@ -1,5 +1,34 @@
 const Request = require('../models/Request');
 const User = require('../models/User');
+const CampDonation = require('../models/CampDonation');
+const nodemailer = require('nodemailer');
+
+// Email utility function
+async function sendEmail(to, subject, text) {
+  try {
+    // Configure transporter using environment variables
+    const transporter = nodemailer.createTransport({
+      host: process.env.SMTP_HOST,
+      port: process.env.SMTP_PORT,
+      secure: process.env.SMTP_SECURE === 'true', // true for 465, false for other ports
+      auth: {
+        user: process.env.SMTP_USER,
+        pass: process.env.SMTP_PASS
+      },
+      tls: {
+        rejectUnauthorized: false // Allow self-signed certificates (development only)
+      }
+    });
+    await transporter.sendMail({
+      from: process.env.EMAIL_FROM || process.env.SMTP_USER,
+      to,
+      subject,
+      text
+    });
+  } catch (err) {
+    console.error('Error sending email to', to, err);
+  }
+}
 
 exports.createRequest = async (req, res) => {
   try {
@@ -88,6 +117,23 @@ exports.createRequest = async (req, res) => {
       }
     });
 
+    // Send emails to all eligible donors
+    const donorEmails = nearbyDonors.filter(donor => donor.email).map(donor => donor.email);
+    console.log('Eligible donor emails:', donorEmails);
+    for (const donor of nearbyDonors) {
+      if (donor.email) {
+        const subject = `Urgent Blood Donation Request: ${bloodType}`;
+        const text = `Dear ${donor.name},\n\nA new blood donation request for ${bloodType} has been created near your location.\n\nHospital: ${hospitalName || 'N/A'}\nUrgency: ${urgency || 'N/A'}\nNotes: ${notes || 'None'}\n\nIf you are able to donate, please log in to the app for more details.\n\nThank you for being a lifesaver!`;
+        console.log(`Attempting to send email to: ${donor.email}`);
+        try {
+          await sendEmail(donor.email, subject, text);
+          console.log(`Email successfully sent to: ${donor.email}`);
+        } catch (err) {
+          console.error(`Failed to send email to: ${donor.email}`, err);
+        }
+      }
+    }
+
     res.status(201).json({
       request: await request.populate('requester', 'name email userType'),
       nearbyDonors: nearbyDonors.map(donor => ({
@@ -151,6 +197,22 @@ exports.acceptRequest = async (req, res) => {
       // Prevent the same donor from donating twice
       if (request.donations.some(d => d.donor.toString() === req.user._id.toString())) {
         return res.status(400).json({ message: 'You have already donated for this request' });
+      }
+      // 30-day buffer for common users
+      const oneMonthAgo = new Date();
+      oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
+      // Check Request donations
+      const recentRequestDonation = await Request.findOne({
+        'donations.donor': req.user._id,
+        'donations.donatedAt': { $gte: oneMonthAgo }
+      });
+      // Check CampDonation
+      const recentCampDonation = await CampDonation.findOne({
+        donor: req.user._id,
+        donatedAt: { $gte: oneMonthAgo }
+      });
+      if (recentRequestDonation || recentCampDonation) {
+        return res.status(400).json({ message: 'You can only donate once every 30 days.' });
       }
       // Add donor and decrement units left by 1
       request.donations.push({ donor: req.user._id });

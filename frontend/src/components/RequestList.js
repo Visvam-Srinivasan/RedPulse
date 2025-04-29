@@ -1,79 +1,172 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { 
+  Container, 
+  Typography, 
+  Box, 
+  Card, 
+  CardContent, 
+  Grid,
+  Fade,
+  Button
+} from '@mui/material';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+import axios from 'axios';
 
-const RequestCard = ({ request, onAccept, onCancel }) => {
-  const [isExpanded, setIsExpanded] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState(null);
+const RequestList = () => {
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  const [requests, setRequests] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [fadeIn, setFadeIn] = useState(false);
 
-  const handleAccept = async () => {
-    setIsLoading(true);
-    setError(null);
+  useEffect(() => {
+    setFadeIn(true);
+    fetchRequests();
+  }, []);
+
+  const fetchRequests = async () => {
     try {
-      await onAccept(request._id);
+      const token = localStorage.getItem('token');
+      const response = await axios.get('http://localhost:5000/api/requests', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setRequests(response.data);
     } catch (err) {
-      setError(err.message);
+      setError(err.response?.data?.message || 'Failed to fetch requests');
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-md p-4 mb-4">
-      <div className="flex justify-between items-start">
-        <div>
-          <h3 className="text-lg font-semibold text-gray-800">
-            {request.bloodType} Blood Request
-          </h3>
-          <p className="text-sm text-gray-600">
-            {request.unitsLeft} of {request.totalUnits} units left
-          </p>
-          {request.hospitalName && (
-            <p className="text-sm text-gray-600">
-              Hospital: {request.hospitalName}
-            </p>
-          )}
-          <p className="text-sm text-gray-600">
-            Status: {request.status.charAt(0).toUpperCase() + request.status.slice(1)}
-          </p>
-        </div>
-        <div className="flex space-x-2">
-          {request.status === 'pending' && request.unitsLeft > 0 && (
-            <button
-              onClick={handleAccept}
-              disabled={isLoading}
-              className="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600 disabled:opacity-50"
-            >
-              {isLoading ? 'Accepting...' : 'Accept'}
-            </button>
-          )}
-          {request.status === 'pending' && (
-            <button
-              onClick={() => onCancel(request._id)}
-              className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600"
-            >
-              Cancel
-            </button>
-          )}
-        </div>
-      </div>
-      {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
-      <button
-        onClick={() => setIsExpanded(!isExpanded)}
-        className="text-blue-500 text-sm mt-2 hover:underline"
-      >
-        {isExpanded ? 'Show Less' : 'Show More'}
-      </button>
-      {isExpanded && (
-        <div className="mt-2 text-sm text-gray-600">
-          <p>Location: {request.location.address}</p>
-          <p>Created: {new Date(request.createdAt).toLocaleString()}</p>
-          {request.fulfilledAt && (
-            <p>Fulfilled: {new Date(request.fulfilledAt).toLocaleString()}</p>
-          )}
-        </div>
-      )}
-    </div>
+    <Box
+      sx={{
+        minHeight: '100vh',
+        width: '100%',
+        position: 'relative',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundImage: 'url("./layer1.png")',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        position: 'relative',
+        animation: 'slideUp 1s ease-out forwards',
+        animationDelay: '0.2s',
+        '&::before': {
+          content: '""',
+          position: 'absolute',
+          top: '100%',
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundImage: 'url("./layer2.png")',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          animation: 'slideUp 1s ease-out forwards',
+          animationDelay: '0.5s',
+          zIndex: 1
+        },
+        '&::after': {
+          content: '""',
+          position: 'absolute',
+          top: '100%',
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundImage: 'url("./layer3.png")',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          animation: 'slideUp 1s ease-out forwards',
+          animationDelay: '1s',
+          zIndex: 2
+        },
+        '@keyframes slideUp': {
+          '0%': {
+            top: '80%',
+            opacity: 0
+          },
+          '100%': {
+            top: 0,
+            opacity: 1
+          }
+        }
+      }}
+    >
+      <Container maxWidth="lg" sx={{ 
+        position: 'relative', 
+        zIndex: 10,
+        mt: -8,
+        pt: 4
+      }}>
+        <Fade in={fadeIn} timeout={2000}>
+          <Grid container spacing={3}>
+            <Grid item xs={12}>
+              <Card 
+                sx={{ 
+                  background: 'rgba(255, 255, 255, 0.95)',
+                  backdropFilter: 'blur(10px)',
+                  transition: 'all 0.5s ease-in-out',
+                  '&:hover': {
+                    transform: 'translateY(-5px)',
+                    boxShadow: '0 8px 16px rgba(0,0,0,0.2)'
+                  }
+                }}
+              >
+                <CardContent>
+                  <Typography variant="h4" gutterBottom>
+                    Blood Requests
+                  </Typography>
+                  {loading ? (
+                    <Typography>Loading...</Typography>
+                  ) : error ? (
+                    <Typography color="error">{error}</Typography>
+                  ) : requests.length === 0 ? (
+                    <Typography>No requests found</Typography>
+                  ) : (
+                    <Grid container spacing={2}>
+                      {requests.map((request) => (
+                        <Grid item xs={12} md={6} key={request._id}>
+                          <Card 
+                            sx={{ 
+                              background: 'rgba(255, 255, 255, 0.95)',
+                              backdropFilter: 'blur(10px)',
+                              transition: 'all 0.3s ease-in-out',
+                              '&:hover': {
+                                transform: 'translateY(-5px)',
+                                boxShadow: '0 8px 16px rgba(0,0,0,0.2)'
+                              }
+                            }}
+                          >
+                            <CardContent>
+                              <Typography variant="h6">{request.bloodType} Blood Needed</Typography>
+                              <Typography>Units Required: {request.unitsRequired}</Typography>
+                              <Typography>Status: {request.status}</Typography>
+                              <Typography>Location: {request.location}</Typography>
+                              <Button
+                                variant="contained"
+                                color="primary"
+                                onClick={() => navigate(`/requests/${request._id}`)}
+                                sx={{ mt: 2 }}
+                              >
+                                View Details
+                              </Button>
+                            </CardContent>
+                          </Card>
+                        </Grid>
+                      ))}
+                    </Grid>
+                  )}
+                </CardContent>
+              </Card>
+            </Grid>
+          </Grid>
+        </Fade>
+      </Container>
+    </Box>
   );
 };
 
-export default RequestCard; 
+export default RequestList; 
