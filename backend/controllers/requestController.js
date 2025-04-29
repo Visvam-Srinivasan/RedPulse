@@ -14,6 +14,9 @@ async function sendEmail(to, subject, text) {
       auth: {
         user: process.env.SMTP_USER,
         pass: process.env.SMTP_PASS
+      },
+      tls: {
+        rejectUnauthorized: false // Allow self-signed certificates (development only)
       }
     });
     await transporter.sendMail({
@@ -115,11 +118,19 @@ exports.createRequest = async (req, res) => {
     });
 
     // Send emails to all eligible donors
+    const donorEmails = nearbyDonors.filter(donor => donor.email).map(donor => donor.email);
+    console.log('Eligible donor emails:', donorEmails);
     for (const donor of nearbyDonors) {
       if (donor.email) {
         const subject = `Urgent Blood Donation Request: ${bloodType}`;
         const text = `Dear ${donor.name},\n\nA new blood donation request for ${bloodType} has been created near your location.\n\nHospital: ${hospitalName || 'N/A'}\nUrgency: ${urgency || 'N/A'}\nNotes: ${notes || 'None'}\n\nIf you are able to donate, please log in to the app for more details.\n\nThank you for being a lifesaver!`;
-        sendEmail(donor.email, subject, text);
+        console.log(`Attempting to send email to: ${donor.email}`);
+        try {
+          await sendEmail(donor.email, subject, text);
+          console.log(`Email successfully sent to: ${donor.email}`);
+        } catch (err) {
+          console.error(`Failed to send email to: ${donor.email}`, err);
+        }
       }
     }
 
