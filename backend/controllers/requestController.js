@@ -1,6 +1,31 @@
 const Request = require('../models/Request');
 const User = require('../models/User');
 const CampDonation = require('../models/CampDonation');
+const nodemailer = require('nodemailer');
+
+// Email utility function
+async function sendEmail(to, subject, text) {
+  try {
+    // Configure transporter using environment variables
+    const transporter = nodemailer.createTransport({
+      host: process.env.SMTP_HOST,
+      port: process.env.SMTP_PORT,
+      secure: process.env.SMTP_SECURE === 'true', // true for 465, false for other ports
+      auth: {
+        user: process.env.SMTP_USER,
+        pass: process.env.SMTP_PASS
+      }
+    });
+    await transporter.sendMail({
+      from: process.env.EMAIL_FROM || process.env.SMTP_USER,
+      to,
+      subject,
+      text
+    });
+  } catch (err) {
+    console.error('Error sending email to', to, err);
+  }
+}
 
 exports.createRequest = async (req, res) => {
   try {
@@ -88,6 +113,15 @@ exports.createRequest = async (req, res) => {
         }
       }
     });
+
+    // Send emails to all eligible donors
+    for (const donor of nearbyDonors) {
+      if (donor.email) {
+        const subject = `Urgent Blood Donation Request: ${bloodType}`;
+        const text = `Dear ${donor.name},\n\nA new blood donation request for ${bloodType} has been created near your location.\n\nHospital: ${hospitalName || 'N/A'}\nUrgency: ${urgency || 'N/A'}\nNotes: ${notes || 'None'}\n\nIf you are able to donate, please log in to the app for more details.\n\nThank you for being a lifesaver!`;
+        sendEmail(donor.email, subject, text);
+      }
+    }
 
     res.status(201).json({
       request: await request.populate('requester', 'name email userType'),
