@@ -45,7 +45,7 @@ const Navbar = () => {
           sx={{ flexGrow: 1, display: 'flex', alignItems: 'center', cursor: 'pointer', fontWeight: 700 }}
           onClick={() => (user ? navigate('/dashboard') : navigate('/'))}
         >
-          Blood Donation App
+          RedPulse
           {user && (
             <>
               <Chip

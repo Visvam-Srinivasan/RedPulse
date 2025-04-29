@@ -8,10 +8,10 @@ import SearchIcon from '@mui/icons-material/Search';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 
 const galleryImages = [
-  'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=600&q=80',
-  'https://images.unsplash.com/photo-1465101046530-73398c7f28ca?auto=format&fit=crop&w=600&q=80',
-  'https://images.unsplash.com/photo-1519494026892-80bbd2d6fd23?auto=format&fit=crop&w=600&q=80',
-  'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=600&q=80',
+  'https://media.istockphoto.com/id/1399755086/photo/young-woman-giving-blood-closeup.jpg?s=612x612&w=0&k=20&c=n_GVkk4YQMKwadYla8ZuXQafC7za-XSelTBUNhDUhQo=',
+  'https://media.istockphoto.com/id/1399755086/photo/young-woman-giving-blood-closeup.jpg?s=612x612&w=0&k=20&c=n_GVkk4YQMKwadYla8ZuXQafC7za-XSelTBUNhDUhQo=',
+  'https://i.pinimg.com/736x/3a/f5/9b/3af59bf49f5a0f5874511f1b5a34211c.jpg',
+  'https://www.cureka.com/wp-content/uploads/2017/06/blood-donation.jpg',
 ];
 
 const features = [
@@ -47,7 +47,7 @@ const Home = () => {
             <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', mb: 2 }}>
               <BloodtypeIcon color="error" sx={{ fontSize: 48, mr: 1 }} />
               <Typography variant="h3" component="h1" fontWeight={700} color="primary">
-                Blood Donation App
+                RedPulse
               </Typography>
             </Box>
             <Typography variant="h5" sx={{ mb: 3 }}>

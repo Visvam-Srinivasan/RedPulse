@@ -37,6 +37,12 @@ const RequestForm = () => {
   const [showManual, setShowManual] = useState(false);
   const [fetchingRegistered, setFetchingRegistered] = useState(false);
 
+  useEffect(() => {
+    if (!user) {
+      navigate('/login');
+    }
+  }, [navigate]);
+
   const getLocation = () => {
     setIsLocating(true);
     setLocationError('');
@@ -137,6 +143,11 @@ const RequestForm = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!user) {
+      setError('You must be logged in to create a request.');
+      navigate('/login');
+      return;
+    }
     let locationToSend = formData.location;
     if (!locationToSend && formData.manualLocation.latitude && formData.manualLocation.longitude) {
       locationToSend = {
