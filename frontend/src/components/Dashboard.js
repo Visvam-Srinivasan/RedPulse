@@ -116,7 +116,7 @@ const Dashboard = () => {
         
 
         <Grid container spacing={3}>
-          <Grid item xs={12} md={4}>
+          <Grid item xs={12} md={6}>
             <Fade in={fadeIn} timeout={2000}>
               <Card 
                 sx={{ 
@@ -129,7 +129,7 @@ const Dashboard = () => {
                   }
                 }}
               >
-                <CardContent>
+                <CardContent sx={{ p: 3 }}>
                   {renderUserIcon()}
                   <Typography variant="h6" gutterBottom>
                     User Information
@@ -144,14 +144,14 @@ const Dashboard = () => {
                     overflow: 'hidden'
                   }}>
                     <Box sx={{ 
-                      ml: 12, 
+                      ml: 16,
                       display: 'flex', 
                       flexDirection: 'column', 
                       gap: 2,
                       width: '100%',
-                      pr: 2,
+                      pr: 3,
                       position: 'relative',
-                      left: '20px'
+                      left: '30px'
                     }}>
                       <Typography 
                         color="textSecondary" 
